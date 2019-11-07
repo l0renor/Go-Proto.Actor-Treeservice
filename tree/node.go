@@ -26,9 +26,8 @@ type Leaf struct {
 // Messages -----------------------------------------------
 
 type Insert struct {
-	key    int
-	value  string
-	caller *actor.PID
+	key   int
+	value string
 }
 
 type Error struct {
@@ -54,46 +53,51 @@ func (state *Node) insert(msg *Insert, context actor.Context) {
 	if state.inner != nil {
 		switch {
 		case msg.key > state.inner.maxLeft:
-			context.Send(state.inner.right, msg)
+			context.RequestWithCustomSender(state.inner.right, msg, context.Sender())
 		case msg.key < state.inner.maxLeft:
-			context.Send(state.inner.left, msg)
+			context.RequestWithCustomSender(state.inner.left, msg, context.Sender())
 		case msg.key == state.inner.maxLeft:
-			context.Send(msg.caller, &Error{originalMsg: msg})
+			context.Send(context.Sender(), &Error{originalMsg: msg})
 		}
 	} else if state.leaf != nil {
-		state.leaf.values[msg.key] = msg.value
-		if len(state.leaf.values) > state.maxElems {
-			// Leaf becomes inner node
-			state.inner = &Inner{}
-			state.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-				return &Node{
-					maxElems: state.maxElems,
-					inner:    nil,
-					leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+		_, ok := state.leaf.values[msg.key]
+		if ok {
+			context.Send(context.Sender(), &Error{originalMsg: msg})
+		} else {
+			state.leaf.values[msg.key] = msg.value
+			if len(state.leaf.values) > state.maxElems {
+				// Leaf becomes inner node
+				state.inner = &Inner{}
+				state.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+					return &Node{
+						maxElems: state.maxElems,
+						inner:    nil,
+						leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+					}
+				}))
+				state.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+					return &Node{
+						maxElems: state.maxElems,
+						inner:    nil,
+						leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+					}
+				}))
+				keys := make([]int, state.maxElems+1)
+				for k := range state.leaf.values {
+					keys = append(keys, k)
 				}
-			}))
-			state.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-				return &Node{
-					maxElems: state.maxElems,
-					inner:    nil,
-					leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+				sort.Ints(keys)
+				indexMaxLeft := (state.maxElems + 1) / 2
+				state.inner.maxLeft = keys[indexMaxLeft]
+				for _, k := range keys {
+					if k <= indexMaxLeft {
+						context.Request(state.inner.left, &Insert{key: keys[k], value: state.leaf.values[keys[k]]})
+					} else {
+						context.Request(state.inner.right, &Insert{key: keys[k], value: state.leaf.values[keys[k]]})
+					}
 				}
-			}))
-			keys := make([]int, state.maxElems)
-			for k := range state.leaf.values {
-				keys = append(keys, k)
 			}
-			sort.Ints(keys)
-			indexMaxLeft := state.maxElems / 2
-			state.inner.maxLeft = keys[indexMaxLeft]
-			for _, k := range keys {
-				if k <= indexMaxLeft {
-
-				} else {
-
-				}
-			}
-
+			context.Send(context.Sender(), &Success{originalMsg: msg})
 		}
 	}
 }
