@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+//TODO set caller in CLI/service
 // Actor Node --------------------------------------------
 
 type Node struct {
@@ -24,6 +25,11 @@ type Leaf struct {
 }
 
 // Messages -----------------------------------------------
+
+type Search struct {
+	caller *actor.PID
+	key    int
+}
 
 type Insert struct {
 	key   int
@@ -46,6 +52,8 @@ func (state *Node) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *Insert:
 		state.insert(msg, context)
+	case *Search:
+		state.search(msg, context)
 	}
 }
 
@@ -98,6 +106,27 @@ func (state *Node) insert(msg *Insert, context actor.Context) {
 				}
 			}
 			context.Send(context.Sender(), &Success{originalMsg: msg})
+		}
+	}
+}
+
+func (node *Node) search(msg *Search, context actor.Context) {
+	if (node.inner != Inner{}) { //IF is inner node
+		if msg.key > node.inner.maxLeft { // bigger -> keep searching on the right
+			context.Send(node.inner.right, msg)
+		} else {
+			context.Send(node.inner.left, msg) // smaller -> keep searching on the left
+		}
+	} else { // IF leaf
+		elem, ok := node.leaf.values[msg.key]
+		if ok {
+			context.Send(msg.caller, Success{
+				key:         msg.key,
+				value:       elem,
+				originalMsg: msg,
+			})
+		} else { //Key not in Tree
+			context.Send(msg.caller, Error{originalMsg: msg})
 		}
 	}
 }
