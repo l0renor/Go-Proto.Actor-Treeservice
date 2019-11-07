@@ -83,6 +83,8 @@ func (node *Node) search(msg *Search, context actor.Context) {
 				value:       elem,
 				originalMsg: msg,
 			})
+		} else { //Key not in Tree
+			context.Send(msg.caller, Error{originalMsg: msg})
 		}
 	}
 }
