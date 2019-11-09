@@ -119,15 +119,15 @@ func (state *Node) insert(msg *Insert, context actor.Context) {
 	}
 }
 
-func (node *Node) search(msg *Search, context actor.Context) {
-	if (node.inner != Inner{}) { //IF is inner node
-		if msg.key > node.inner.maxLeft { // bigger -> keep searching on the right
-			context.Send(node.inner.right, msg)
+func (state *Node) search(msg *Search, context actor.Context) {
+	if state.inner != nil { //IF is inner node
+		if msg.key > state.inner.maxLeft { // bigger -> keep searching on the right
+			context.Send(state.inner.right, msg)
 		} else {
-			context.Send(node.inner.left, msg) // smaller -> keep searching on the left
+			context.Send(state.inner.left, msg) // smaller -> keep searching on the left
 		}
 	} else { // IF leaf
-		elem, ok := node.leaf.values[msg.key]
+		elem, ok := state.leaf.values[msg.key]
 		if ok {
 			context.Send(msg.caller, Success{
 				key:         msg.key,
