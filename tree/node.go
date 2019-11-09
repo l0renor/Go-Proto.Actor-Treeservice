@@ -2,6 +2,7 @@ package tree
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"math"
 	"sort"
 )
 
@@ -63,6 +64,9 @@ func (state *Node) Receive(context actor.Context) {
 		state.search(msg, context)
 	case *Delete:
 		state.delete(msg, context)
+	case *updateMaxleft:
+		state.inner.maxLeft = msg.newValue
+
 	}
 }
 
@@ -140,7 +144,7 @@ func (state *Node) search(msg *Search, context actor.Context) {
 	}
 }
 func (node *Node) delete(msg *Delete, context actor.Context) {
-	if (node.inner != Inner{}) { //IF is inner node
+	if node.inner != nil { //IF is inner node
 		if msg.key <= node.inner.maxLeft { // search on left
 			if msg.key == node.inner.maxLeft { // update Maxleft
 				msg.needUpdate = append(msg.needUpdate, context.Self())
@@ -153,7 +157,11 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 		_, OK := node.leaf.values[msg.key]
 		if OK {
 			delete(node.leaf.values, msg.key)
-			for _, node := range node.leaf.values {
+			maxval := 0
+			for val := range node.leaf.values {
+				maxval = int(math.Max(float64(val), float64(maxval)))
+			}
+			for _, node := range msg.needUpdate {
 				context.Send(node, updateMaxleft{newValue: 1}) //TODO update with real value
 			}
 		} else {
