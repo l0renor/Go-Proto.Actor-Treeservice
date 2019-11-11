@@ -1,4 +1,6 @@
 syntax = "proto3";
 package messages;
 
-message HelloWorld {}
+message Insert{
+    int32
+}
