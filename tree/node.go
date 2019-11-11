@@ -120,13 +120,9 @@ func (state *Node) search(msg *Search, context actor.Context) {
 	} else { // IF leaf
 		elem, ok := state.leaf.values[msg.key]
 		if ok {
-			context.Send(msg.caller, Success{
-				key:         msg.key,
-				value:       elem,
-				originalMsg: msg,
-			})
+			context.Send(msg.caller, &Success{key: msg.key, value: elem, originalMsg: msg})
 		} else { //Key not in Tree
-			context.Send(msg.caller, Error{originalMsg: msg})
+			context.Send(msg.caller, &Error{originalMsg: msg})
 		}
 	}
 }
