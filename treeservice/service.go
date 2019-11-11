@@ -6,6 +6,7 @@ import (
 )
 
 type Service struct {
+	//Place to store all the trees managed by the service
 	trees map[int32]Tree
 }
 
@@ -14,11 +15,24 @@ type Tree struct {
 	Token string
 }
 
+//hier werden nur CLI MSGs empfangen
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case tree.Success:
-		handleSuccess(msg)
-	case tree.Error:
-		handleError(msg)
+	case TraversFromCLI:
+		//spawn traversactor
+		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &Traversaktor{
+				CLI:           context.Sender(),
+				NMessagesWait: 1,
+			}
+		}))
+		//start travers by sending to first node with custom sender = traversactor
+		context.RequestWithCustomSender(PID, tree.Travers{}, traversActorPID) //TODO PID des root des trees mit der gewünschten id
+	case InsertFromCLI:
+		InsertActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &InsertActor{CLI: context.Sender()}
+		}))
+		context.RequestWithCustomSender(PID, tree.Insert{}, InsertActorPID) //TODO PID des root des trees mit der gewünschten id
+
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-//TODO set caller in CLI/service
+//TODO set caller in CLI/CLI
 // Actor Node --------------------------------------------
 
 type Node struct {
@@ -153,6 +153,7 @@ func (node *Node) travers(msg *Travers, context actor.Context) {
 		context.RequestWithCustomSender(node.inner.left, Travers{
 			TreeValues: nil,
 		}, context.Sender())
+		context.Respond(TraversWaitOneMore{})
 	} else { //IF is leaf
 		context.Send(context.Sender(), Travers{
 			TreeValues: node.leaf.values,
