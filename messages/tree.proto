@@ -1,6 +1,11 @@
 syntax = "proto3";
 package messages;
 
-message Insert{
-    int32
+message Insert {
+    int32 key = 1;
+    string value = 2;
+}
+
+message Search {
+    int32 key = 1;
 }
