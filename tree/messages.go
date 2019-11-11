@@ -2,7 +2,7 @@ package tree
 
 import "github.com/AsynkronIT/protoactor-go/actor"
 
-//Die nachricht verläuft den baum nach unten und teilt sich auf so oft nötig
+//Die Nachricht verläuft den Baum nach unten und teilt sich auf so oft nötig
 //der service muss auf alle nachrichten  der leaves waren und kann diese sortieren
 type Travers struct {
 	TreeValues map[int32]string
@@ -11,8 +11,7 @@ type TraversWaitOneMore struct {
 }
 
 type Search struct {
-	Caller *actor.PID
-	Key    int32
+	Key int32
 }
 
 type Insert struct {
@@ -22,10 +21,10 @@ type Insert struct {
 
 type Delete struct {
 	Key        int32
-	Caller     *actor.PID
-	NeedUpdate []*actor.PID
+	NeedUpdate *actor.PID
 }
-type UpdateMaxleft struct {
+
+type UpdateMaxLeft struct {
 	NewValue int32
 }
 
