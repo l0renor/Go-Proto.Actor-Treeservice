@@ -124,11 +124,8 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 	if node.inner != nil { //IF is inner node
 		var child *actor.PID
 		switch {
-		case msg.Key < node.inner.maxLeft:
+		case msg.Key <= node.inner.maxLeft:
 			child = node.inner.left
-		case msg.Key == node.inner.maxLeft:
-			child = node.inner.left
-			msg.NeedUpdate = context.Self()
 		case msg.Key > node.inner.maxLeft:
 			child = node.inner.right
 		}
@@ -141,9 +138,7 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 			for v := range node.leaf.values {
 				maxLeft = max(maxLeft, v)
 			}
-			if msg.NeedUpdate != nil {
-				context.Send(msg.NeedUpdate, UpdateMaxLeft{NewValue: maxLeft})
-			}
+			context.Send(context.Parent(), UpdateMaxLeft{NewValue: maxLeft})
 		} else {
 			context.Respond(Error{OriginalMsg: msg})
 		}
@@ -152,17 +147,14 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 
 func (node *Node) travers(msg *Travers, context actor.Context) {
 	if node.inner != nil { //IF is inner node
-		context.Send(node.inner.right, Travers{
-			Caller:     msg.Caller,
+		context.RequestWithCustomSender(node.inner.right, Travers{
 			TreeValues: nil,
-		})
-		context.Send(node.inner.left, Travers{
-			Caller:     msg.Caller,
+		}, context.Sender())
+		context.RequestWithCustomSender(node.inner.left, Travers{
 			TreeValues: nil,
-		})
+		}, context.Sender())
 	} else { //IF is leaf
-		context.Send(msg.Caller, Travers{
-			Caller:     msg.Caller,
+		context.Send(context.Sender(), Travers{
 			TreeValues: node.leaf.values,
 		})
 	}
