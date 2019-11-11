@@ -1,7 +1,8 @@
-package main
+package service
 
 import (
 	"fmt"
+	"github.com/AsynkronIT/protoactor-go/remote"
 )
 
 func main() {
