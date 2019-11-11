@@ -2,7 +2,6 @@ package tree
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"math"
 	"sort"
 )
 
@@ -22,124 +21,131 @@ type Inner struct {
 }
 
 type Leaf struct {
-	values map[int]string
+	values map[int32]string
 }
 
 // Actions ------------------------------------------------
 
-func (state *Node) Receive(context actor.Context) {
+func (node *Node) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *Insert:
-		state.insert(msg, context)
+		node.insert(msg, context)
 	case *Search:
-		state.search(msg, context)
+		node.search(msg, context)
 	case *Delete:
-		state.delete(msg, context)
-	case *UpdateMaxleft:
-		state.inner.maxLeft = msg.NewValue
+		node.delete(msg, context)
+	case *UpdateMaxLeft:
+		node.inner.maxLeft = msg.NewValue
 	case Travers:
-		state.travers(&msg, context)
+		node.travers(&msg, context)
 
 	}
 }
 
-func (state *Node) insert(msg *Insert, context actor.Context) {
-	if state.inner != nil {
+func (node *Node) insert(msg *Insert, context actor.Context) {
+	if node.inner != nil {
 		switch {
-		case msg.Key > state.inner.maxLeft:
-			context.RequestWithCustomSender(state.inner.right, msg, context.Sender())
-		case msg.Key < state.inner.maxLeft:
-			context.RequestWithCustomSender(state.inner.left, msg, context.Sender())
-		case msg.Key == state.inner.maxLeft:
-			context.Send(context.Sender(), &Error{OriginalMsg: msg})
+		case msg.Key > node.inner.maxLeft:
+			context.RequestWithCustomSender(node.inner.right, msg, context.Sender())
+		case msg.Key < node.inner.maxLeft:
+			context.RequestWithCustomSender(node.inner.left, msg, context.Sender())
+		case msg.Key == node.inner.maxLeft:
+			context.Respond(Error{OriginalMsg: msg})
 		}
-	} else if state.leaf != nil {
-		_, ok := state.leaf.values[msg.Key]
+	} else if node.leaf != nil {
+		_, ok := node.leaf.values[msg.Key]
 		if ok {
-			context.Send(context.Sender(), &Error{OriginalMsg: msg})
+			context.Respond(&Error{OriginalMsg: msg})
 		} else {
-			state.leaf.values[msg.Key] = msg.Value
-			if len(state.leaf.values) > state.maxElems {
+			node.leaf.values[msg.Key] = msg.Value
+			if len(node.leaf.values) > node.maxElems {
 				// Leaf becomes inner node
-				state.inner = &Inner{}
-				state.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+				node.inner = &Inner{}
+				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: state.maxElems,
+						maxElems: node.maxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
 					}
 				}))
-				state.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+				node.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: state.maxElems,
+						maxElems: node.maxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int]string, state.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
 					}
 				}))
-				keys := make([]int, state.maxElems+1)
-				for k := range state.leaf.values {
-					keys = append(keys, k)
+				keys := make([]int, node.maxElems+1)
+				for k := range node.leaf.values {
+					keys = append(keys, int(k))
 				}
 				sort.Ints(keys)
-				indexMaxLeft := (state.maxElems + 1) / 2
-				state.inner.maxLeft = keys[indexMaxLeft]
+				indexMaxLeft := (node.maxElems + 1) / 2
+				node.inner.maxLeft = int32(keys[indexMaxLeft])
 				for _, k := range keys {
+					var child *actor.PID
 					if k <= indexMaxLeft {
-						context.Request(state.inner.left, &Insert{Key: keys[k], Value: state.leaf.values[keys[k]]})
+						child = node.inner.left
 					} else {
-						context.Request(state.inner.right, &Insert{Key: keys[k], Value: state.leaf.values[keys[k]]})
+						child = node.inner.right
 					}
+					context.Request(child, &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]})
 				}
 			}
-			context.Send(context.Sender(), &Success{OriginalMsg: msg})
+			context.Respond(&Success{OriginalMsg: msg})
 		}
 	}
 }
 
-func (state *Node) search(msg *Search, context actor.Context) {
-	if state.inner != nil { //IF is inner node
-		if msg.Key > state.inner.maxLeft { // bigger -> keep searching on the right
-			context.Send(state.inner.right, msg)
+func (node *Node) search(msg *Search, context actor.Context) {
+	if node.inner != nil { //IF is inner node
+		var child *actor.PID
+		if msg.Key > node.inner.maxLeft { // bigger -> keep searching on the right
+			child = node.inner.right
 		} else {
-			context.Send(state.inner.left, msg) // smaller -> keep searching on the left
+			child = node.inner.left // smaller -> keep searching on the left
 		}
+		context.RequestWithCustomSender(child, msg, context.Sender())
 	} else { // IF leaf
-		elem, ok := state.leaf.values[msg.Key]
+		elem, ok := node.leaf.values[msg.Key]
 		if ok {
-			context.Send(msg.Caller, Success{
+			context.Respond(Success{
 				Key:         msg.Key,
 				Value:       elem,
 				OriginalMsg: msg,
 			})
 		} else { //Key not in Tree
-			context.Send(msg.Caller, Error{OriginalMsg: msg})
+			context.Respond(Error{OriginalMsg: msg})
 		}
 	}
 }
 
 func (node *Node) delete(msg *Delete, context actor.Context) {
 	if node.inner != nil { //IF is inner node
-		if msg.Key <= node.inner.maxLeft { // search on left
-			if msg.Key == node.inner.maxLeft { // update Maxleft
-				msg.NeedUpdate = append(msg.NeedUpdate, context.Self())
-			}
-			context.Send(node.inner.left, msg)
-		} else { // search on right
-			context.Send(node.inner.right, msg)
+		var child *actor.PID
+		switch {
+		case msg.Key < node.inner.maxLeft:
+			child = node.inner.left
+		case msg.Key == node.inner.maxLeft:
+			child = node.inner.left
+			msg.NeedUpdate = context.Self()
+		case msg.Key > node.inner.maxLeft:
+			child = node.inner.right
 		}
-	} else { //IF is leaf
+		context.RequestWithCustomSender(child, msg, context.Sender())
+	} else if node.leaf != nil { //IF is leaf
 		_, OK := node.leaf.values[msg.Key]
 		if OK {
 			delete(node.leaf.values, msg.Key)
-			maxval := 0
-			for val := range node.leaf.values {
-				maxval = int(math.Max(float64(val), float64(maxval)))
+			maxLeft := int32(0)
+			for v := range node.leaf.values {
+				maxLeft = max(maxLeft, v)
 			}
-			for _, node := range msg.NeedUpdate {
-				context.Send(node, UpdateMaxleft{NewValue: 1}) //TODO update with real value
+			if msg.NeedUpdate != nil {
+				context.Send(msg.NeedUpdate, UpdateMaxLeft{NewValue: maxLeft})
 			}
 		} else {
-			context.Send(msg.Caller, Error{OriginalMsg: msg})
+			context.Respond(Error{OriginalMsg: msg})
 		}
 	}
 }
@@ -160,4 +166,11 @@ func (node *Node) travers(msg *Travers, context actor.Context) {
 			TreeValues: node.leaf.values,
 		})
 	}
+}
+
+func max(a int32, b int32) int32 {
+	if a > b {
+		return a
+	}
+	return b
 }
