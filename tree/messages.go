@@ -5,8 +5,9 @@ import "github.com/AsynkronIT/protoactor-go/actor"
 //Die nachricht verläuft den baum nach unten und teilt sich auf so oft nötig
 //der service muss auf alle nachrichten  der leaves waren und kann diese sortieren
 type Travers struct {
-	Caller     *actor.PID
 	TreeValues map[int32]string
+}
+type TraversWaitOneMore struct {
 }
 
 type Search struct {
