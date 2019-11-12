@@ -9,7 +9,7 @@ import (
 // Actor Node --------------------------------------------
 
 type Node struct {
-	maxElems int
+	MaxElems int
 	inner    *Inner
 	leaf     *Leaf
 }
@@ -60,29 +60,29 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 			context.Respond(&Error{OriginalMsg: msg})
 		} else {
 			node.leaf.values[msg.Key] = msg.Value
-			if len(node.leaf.values) > node.maxElems {
+			if len(node.leaf.values) > node.MaxElems {
 				// Leaf becomes inner node
 				node.inner = &Inner{}
 				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: node.maxElems,
+						MaxElems: node.MaxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
 					}
 				}))
 				node.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: node.maxElems,
+						MaxElems: node.MaxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
 					}
 				}))
-				keys := make([]int, node.maxElems+1)
+				keys := make([]int, node.MaxElems+1)
 				for k := range node.leaf.values {
 					keys = append(keys, int(k))
 				}
 				sort.Ints(keys)
-				indexMaxLeft := (node.maxElems + 1) / 2
+				indexMaxLeft := (node.MaxElems + 1) / 2
 				node.inner.maxLeft = int32(keys[indexMaxLeft])
 				for _, k := range keys {
 					var child *actor.PID
