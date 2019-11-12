@@ -1,8 +1,10 @@
 package service
 
 import (
+	"crypto/sha1"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/tree"
+	"time"
 )
 
 type Service struct {
@@ -36,8 +38,24 @@ func (service *Service) Receive(context actor.Context) {
 
 	case CreateNewTree:
 
-	case DelteTree
-	//send tree.kill msg to root
+	case DelteTree:
+		//send tree.kill msg to root
 
 	}
+}
+
+func idGenerator() func() int32 {
+	i := 0
+	return func() int32 {
+		i++
+		return int32(i)
+	}
+}
+
+func tokenGenerator() string {
+	t := time.Now().String()
+	h := sha1.New()
+	h.Write([]byte(t))
+	token := h.Sum(nil)
+	return string(token)
 }
