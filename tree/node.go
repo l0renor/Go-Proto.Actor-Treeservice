@@ -38,6 +38,8 @@ func (node *Node) Receive(context actor.Context) {
 		node.inner.maxLeft = msg.NewValue
 	case Travers:
 		node.travers(&msg, context)
+	case Kill:
+		node.kill(context)
 
 	}
 }
@@ -158,6 +160,17 @@ func (node *Node) travers(msg *Travers, context actor.Context) {
 		context.Send(context.Sender(), Travers{
 			TreeValues: node.leaf.values,
 		})
+	}
+}
+
+func (node *Node) kill(context actor.Context) {
+	if node.inner != nil { //IF is inner node
+		context.Send(node.inner.right, Kill{})
+		context.Send(node.inner.left, Kill{})
+		context.Stop(context.Self())
+
+	} else { //IF is leaf
+		context.Stop(context.Self())
 	}
 }
 
