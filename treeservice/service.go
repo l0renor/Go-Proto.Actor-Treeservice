@@ -34,5 +34,10 @@ func (service *Service) Receive(context actor.Context) {
 		}))
 		context.RequestWithCustomSender(PID, tree.Insert{}, InsertActorPID) //TODO PID des root des trees mit der gewünschten id
 
+	case CreateNewTree:
+
+	case DelteTree
+	//send tree.kill msg to root
+
 	}
 }
