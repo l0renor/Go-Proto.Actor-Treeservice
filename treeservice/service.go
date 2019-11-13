@@ -23,23 +23,12 @@ type Tree struct {
 //hier werden nur CLI MSGs empfangen
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case messages.Traverse:
-		//spawn traversactor
-		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &Traversaktor{
-				CLI:           context.Sender(),
-				NMessagesWait: 1,
-			}
-		}))
-		//start travers by sending to first node with custom sender = traversactor
-		context.RequestWithCustomSender(PID, tree.Travers{}, traversActorPID) //TODO PID des root des trees mit der gewünschten id
-	case messages.Insert:
-		InsertActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &InsertActor{CLI: context.Sender()}
-		}))
-		context.RequestWithCustomSender(PID, tree.Insert{}, InsertActorPID) //TODO PID des root des trees mit der gewünschten id
+	case *messages.Traverse:
+		service.traverse(msg, context)
+	case *messages.Insert:
+		service.insert(msg, context)
 
-	case messages.Create:
+	case *messages.Create:
 		id := service.nextId()
 		token := service.nextToken()
 		root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
@@ -50,7 +39,7 @@ func (service *Service) Receive(context actor.Context) {
 			Token: token,
 		}
 
-	case messages.Delete:
+	case *messages.Remove:
 		//send tree.kill msg to root
 		context.Send()
 
@@ -71,4 +60,60 @@ func generateToken() string {
 	h.Write([]byte(t))
 	token := h.Sum(nil)
 	return string(token)
+}
+
+func (service *Service) insert(msg *messages.Insert, context actor.Context) {
+	id := msg.Id
+	token := msg.Token
+	root, ok := service.getRootNode(id, token)
+	if ok {
+		InsertActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &InsertActor{CLI: context.Sender()}
+		}))
+		context.RequestWithCustomSender(root, tree.Insert{}, InsertActorPID)
+	} else {
+		//TODO Error wrong token/id
+	}
+}
+
+func (service *Service) traverse(msg *messages.Traverse, context actor.Context) {
+	id := msg.Id
+	token := msg.Token
+	root, ok := service.getRootNode(id, token)
+	if ok {
+		//spawn traversactor
+		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &Traversaktor{
+				CLI:           context.Sender(),
+				NMessagesWait: 1,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
+	} else {
+		//TODO Error wrong token/id
+	}
+}
+
+func (service *Service) remove(msg *messages.Remove, context actor.Context) {
+	id := msg.Id
+	token := msg.Token
+	root, ok := service.getRootNode(id, token)
+	if ok {
+		context.Send(root, tree.Kill{})
+	} else {
+		//TODO Error wrong token/id
+	}
+}
+
+//method to get the pid of the root of the tree matching the token and id
+//if none mach false is returned
+func (service *Service) getRootNode(id int32, token string) (*actor.PID, bool) {
+	tree, ok := service.trees[id]
+	if !ok {
+		return nil, false
+	}
+	if tree.Token != token {
+		return nil, false
+	}
+	return tree.Root, true
 }
