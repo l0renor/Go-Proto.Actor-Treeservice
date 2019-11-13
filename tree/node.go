@@ -9,7 +9,7 @@ import (
 // Actor Node --------------------------------------------
 
 type Node struct {
-	maxElems int
+	maxElems int32
 	inner    *Inner
 	leaf     *Leaf
 }
@@ -22,6 +22,16 @@ type Inner struct {
 
 type Leaf struct {
 	values map[int32]string
+}
+
+// Constructor
+
+func NewRoot(maxElems int32) *Node {
+	return &Node{
+		maxElems: maxElems,
+		inner:    nil,
+		leaf:     &Leaf{values: make(map[int32]string, maxElems)},
+	}
 }
 
 // Actions ------------------------------------------------
@@ -38,7 +48,6 @@ func (node *Node) Receive(context actor.Context) {
 		node.inner.maxLeft = msg.NewValue
 	case Travers:
 		node.travers(&msg, context)
-
 	}
 }
 
@@ -58,7 +67,7 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 			context.Respond(&Error{OriginalMsg: msg})
 		} else {
 			node.leaf.values[msg.Key] = msg.Value
-			if len(node.leaf.values) > node.maxElems {
+			if int32(len(node.leaf.values)) > node.maxElems {
 				// Leaf becomes inner node
 				node.inner = &Inner{}
 				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
@@ -84,7 +93,7 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 				node.inner.maxLeft = int32(keys[indexMaxLeft])
 				for _, k := range keys {
 					var child *actor.PID
-					if k <= indexMaxLeft {
+					if int32(k) <= indexMaxLeft {
 						child = node.inner.left
 					} else {
 						child = node.inner.right
