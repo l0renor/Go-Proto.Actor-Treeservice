@@ -43,11 +43,7 @@ func (service *Service) Receive(context actor.Context) {
 		id := service.nextId()
 		token := service.nextToken()
 		root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &tree.Node{
-				MaxElems: msg.MaxElems,
-				Inner:    nil,
-				Leaf:     &tree.Leaf{values: make(map[int32]string, msg.MaxElems)},
-			}
+			return tree.NewRoot(msg.MaxElems)
 		}))
 		service.trees[id] = Tree{
 			Root:  root,
