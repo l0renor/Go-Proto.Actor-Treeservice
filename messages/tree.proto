@@ -1,17 +1,54 @@
 syntax = "proto3";
 package messages;
 
+message Create {
+    int32 max_elems = 1;
+    Response response = 2;
+
+    message Response {
+        bool success = 1;
+        int32 id = 2;
+        string token = 3;
+        string error = 4;
+    }
+}
+
 message Insert {
-    int32 key = 1;
-    string value = 2;
+    int32 id = 1;
+    string token = 2;
+    int32 key = 3;
+    string value = 4;
+    Response response = 5;
+
+    message Response {
+        bool success = 1;
+        string error = 2;
+    }
 }
 
 message Search {
-    int32 key = 1;
+    int32 id = 1;
+    string token = 2;
+    int32 key = 3;
+    Response response = 4;
+
+    message Response {
+        bool success = 1;
+        string value = 2;
+        string error = 3;
+    }
 }
 
 message Delete {
-    int32 key = 1;
+    int32 id = 1;
+    string token = 2;
+    int32 key = 3;
+    Response response = 4;
+
+    message Response {
+        bool success = 1;
+        string error = 2;
+    }
 }
 
 message Traverse {
@@ -20,7 +57,9 @@ message Traverse {
     Response response = 3;
 
     message Response {
-        repeated Tuple tuple = 1;
+        bool success = 1;
+        repeated Tuple tuples = 2;
+        string error = 3;
 
         message Tuple {
             int32 key = 1;
@@ -29,10 +68,13 @@ message Traverse {
     }
 }
 
-message Create {
-    int32 maxElems = 1;
-    int32 id = 2;
-    string token = 3;
+message Remove {
+    int32 id = 1;
+    string token = 2;
+    Response response = 3;
+
+    message Response {
+        bool success = 1;
+        string error = 2;
+    }
 }
-
-
