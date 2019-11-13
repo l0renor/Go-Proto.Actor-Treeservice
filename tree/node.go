@@ -74,24 +74,24 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 				node.inner = &Inner{}
 				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						MaxElems: node.MaxElems,
+						maxElems: node.maxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
 					}
 				}))
 				node.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						MaxElems: node.MaxElems,
+						maxElems: node.maxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
 					}
 				}))
-				keys := make([]int, node.MaxElems+1)
+				keys := make([]int, node.maxElems+1)
 				for k := range node.leaf.values {
 					keys = append(keys, int(k))
 				}
 				sort.Ints(keys)
-				indexMaxLeft := (node.MaxElems + 1) / 2
+				indexMaxLeft := (node.maxElems + 1) / 2
 				node.inner.maxLeft = int32(keys[indexMaxLeft])
 				for _, k := range keys {
 					var child *actor.PID
