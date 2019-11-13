@@ -24,15 +24,19 @@ type Tree struct {
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case messages.Traverse:
-		//spawn traversactor
-		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &Traversaktor{
-				CLI:           context.Sender(),
-				NMessagesWait: 1,
-			}
-		}))
-		//start travers by sending to first node with custom sender = traversactor
-		context.RequestWithCustomSender(PID, tree.Travers{}, traversActorPID) //TODO PID des root des trees mit der gewünschten id
+		if service.areCredentialsValid(msg.Id, msg.Token) {
+			//spawn traversactor
+			traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+				return &Traversaktor{
+					CLI:           context.Sender(),
+					NMessagesWait: 1,
+				}
+			}))
+			//start travers by sending to first node with custom sender = traversactor
+			context.RequestWithCustomSender(PID, tree.Travers{}, traversActorPID) //TODO PID des root des trees mit der gewünschten id
+		} else {
+			//TODO: SEND ERROR
+		}
 	case messages.Insert:
 		InsertActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &InsertActor{CLI: context.Sender()}
@@ -71,4 +75,9 @@ func generateToken() string {
 	h.Write([]byte(t))
 	token := h.Sum(nil)
 	return string(token)
+}
+
+func (service *Service) areCredentialsValid(id int32, token string) bool {
+	value, ok := service.trees[id]
+	return ok && value.Token == token
 }
