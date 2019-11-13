@@ -1,31 +1,32 @@
-package tree
+package service
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/ob-vss-ws19/blatt-3-chupa-chups/tree"
 	"sort"
 )
 
-//todo service needs to send msg to root node with custom sender = traversactor
+//todo CLI needs to send msg to root node with custom sender = traversactor
 type Traversaktor struct {
-	service       *actor.PID
-	nMessagesWait int
+	CLI           *actor.PID
+	NMessagesWait int
 	treemap       map[int32]string
 }
 
-type tuple struct {
+type Tuple struct {
 	Key   int32
 	Value string
 }
 
 func (state *Traversaktor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case Travers:
+	case tree.Travers:
 		for k, v := range msg.TreeValues { // merge maps
 			state.treemap[k] = v
 		}
-		state.nMessagesWait--
-		if state.nMessagesWait == 0 { //all leaves have answered actor can anwser to service and die
-			treeTuple := make([]tuple, 0)
+		state.NMessagesWait--
+		if state.NMessagesWait == 0 { //all leaves have answered actor can anwser to CLI and die
+			treeTuple := make([]Tuple, 0)
 
 			//sort map and make it a slice
 			keys := make([]int, len(msg.TreeValues))
@@ -34,16 +35,16 @@ func (state *Traversaktor) Receive(context actor.Context) {
 			}
 			sort.Ints(keys)
 			for key := range keys {
-				treeTuple = append(treeTuple, tuple{
+				treeTuple = append(treeTuple, Tuple{
 					Key:   int32(key),
 					Value: msg.TreeValues[int32(key)],
 				})
 			}
-			context.Send(state.service, TraverseActor_Msg{tree: treeTuple})
+			//context.Send(state.CLI, tree.TraverseActor_Msg{tree: treeTuple}) TODO send protomsg to cli
 			context.Stop(context.Self())
 		}
 
-	case TraversWaitOneMore:
-		state.nMessagesWait++
+	case tree.TraversWaitOneMore:
+		state.NMessagesWait++
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-//TODO set caller in CLI/service
+//TODO set caller in CLI/CLI
 // Actor Node --------------------------------------------
 
 type Node struct {
@@ -48,6 +48,8 @@ func (node *Node) Receive(context actor.Context) {
 		node.inner.maxLeft = msg.NewValue
 	case Travers:
 		node.travers(&msg, context)
+	case Kill:
+		node.kill(context)
 	}
 }
 
@@ -72,24 +74,24 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 				node.inner = &Inner{}
 				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: node.maxElems,
+						MaxElems: node.MaxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
 					}
 				}))
 				node.inner.right = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 					return &Node{
-						maxElems: node.maxElems,
+						MaxElems: node.MaxElems,
 						inner:    nil,
-						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
+						leaf:     &Leaf{values: make(map[int32]string, node.MaxElems)},
 					}
 				}))
-				keys := make([]int, node.maxElems+1)
+				keys := make([]int, node.MaxElems+1)
 				for k := range node.leaf.values {
 					keys = append(keys, int(k))
 				}
 				sort.Ints(keys)
-				indexMaxLeft := (node.maxElems + 1) / 2
+				indexMaxLeft := (node.MaxElems + 1) / 2
 				node.inner.maxLeft = int32(keys[indexMaxLeft])
 				for _, k := range keys {
 					var child *actor.PID
@@ -162,10 +164,22 @@ func (node *Node) travers(msg *Travers, context actor.Context) {
 		context.RequestWithCustomSender(node.inner.left, Travers{
 			TreeValues: nil,
 		}, context.Sender())
+		context.Respond(TraversWaitOneMore{})
 	} else { //IF is leaf
 		context.Send(context.Sender(), Travers{
 			TreeValues: node.leaf.values,
 		})
+	}
+}
+
+func (node *Node) kill(context actor.Context) {
+	if node.inner != nil { //IF is inner node
+		context.Send(node.inner.right, Kill{})
+		context.Send(node.inner.left, Kill{})
+		context.Stop(context.Self())
+
+	} else { //IF is leaf
+		context.Stop(context.Self())
 	}
 }
 
