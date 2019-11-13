@@ -10,8 +10,9 @@ import (
 
 type Service struct {
 	//Place to store all the trees managed by the service
-	trees map[int32]Tree
-	idGen func() int32
+	trees     map[int32]Tree
+	nextId    func() int32
+	nextToken func() string
 }
 
 type Tree struct {
@@ -39,18 +40,18 @@ func (service *Service) Receive(context actor.Context) {
 		context.RequestWithCustomSender(PID, tree.Insert{}, InsertActorPID) //TODO PID des root des trees mit der gewünschten id
 
 	case messages.Create:
-		id := idGenerator()
-		token := generateToken()
+		id := service.nextId()
+		token := service.nextToken()
 		root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &tree.Node{
-				maxElems: node.maxElems,
-				inner:    nil,
-				leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
+				MaxElems: msg.MaxElems,
+				Inner:    nil,
+				Leaf:     &tree.Leaf{values: make(map[int32]string, msg.MaxElems)},
 			}
 		}))
 		service.trees[id] = Tree{
-			Root:  nil,
-			Token: "",
+			Root:  root,
+			Token: token,
 		}
 
 	case messages.Delete:
