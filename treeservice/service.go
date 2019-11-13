@@ -27,7 +27,8 @@ func (service *Service) Receive(context actor.Context) {
 		service.traverse(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)
-
+	case *messages.Search:
+		service.search(msg, context)
 	case *messages.Create:
 		id := service.nextId()
 		token := service.nextToken()
@@ -40,9 +41,7 @@ func (service *Service) Receive(context actor.Context) {
 		}
 
 	case *messages.Remove:
-		//send tree.kill msg to root
-		context.Send()
-
+		service.remove(msg, context)
 	}
 }
 
@@ -77,6 +76,23 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 }
 
 func (service *Service) traverse(msg *messages.Traverse, context actor.Context) {
+	id := msg.Id
+	token := msg.Token
+	root, ok := service.getRootNode(id, token)
+	if ok {
+		//spawn traversactor
+		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &Traversaktor{
+				CLI:           context.Sender(),
+				NMessagesWait: 1,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
+	} else {
+		//TODO Error wrong token/id
+	}
+}
+func (service *Service) search(msg *messages.Search, context actor.Context) {
 	id := msg.Id
 	token := msg.Token
 	root, ok := service.getRootNode(id, token)
