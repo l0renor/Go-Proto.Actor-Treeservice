@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"sync"
@@ -25,28 +26,55 @@ func (state *receiver) Receive(context actor.Context) {
 	case *messages.Remove:
 		state.remove(msg)
 	}
+	state.wg.Done()
 }
 
-func (state *receiver) create(create *messages.Create) {
-
+func (state *receiver) create(msg *messages.Create) {
+	if msg.Response.Success {
+		fmt.Printf("ID: %d, Token: %s\n", msg.Response.Id, msg.Response.Token)
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
 
-func (state *receiver) insert(insert *messages.Insert) {
-
+func (state *receiver) insert(msg *messages.Insert) {
+	if msg.Response.Success {
+		fmt.Println("Insertion successful")
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
 
-func (state *receiver) search(search *messages.Search) {
-
+func (state *receiver) search(msg *messages.Search) {
+	if msg.Response.Success {
+		fmt.Printf("Value: %s\n", msg.Response.Value)
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
 
 func (state *receiver) delete(msg *messages.Delete) {
-
+	if msg.Response.Success {
+		fmt.Println("Deletion successful")
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
 
-func (state *receiver) traverse(traverse *messages.Traverse) {
-
+func (state *receiver) traverse(msg *messages.Traverse) {
+	if msg.Response.Success {
+		for _, tuple := range msg.Response.Tuples {
+			fmt.Printf("Key: %d, Value: %s\n", tuple.Key, tuple.Value)
+		}
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
 
-func (state *receiver) remove(remove *messages.Remove) {
-
+func (state *receiver) remove(msg *messages.Remove) {
+	if msg.Response.Success {
+		fmt.Println("Removal successful")
+	} else {
+		fmt.Println(msg.Response.Error)
+	}
 }
