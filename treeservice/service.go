@@ -138,6 +138,10 @@ func (service *Service) remove(msg *messages.Remove, context actor.Context) {
 	root, ok := service.getRootNode(msg.Id, msg.Token)
 	if ok {
 		context.Send(root, tree.Kill{})
+		msg.Response = &messages.Remove_Response{
+			Success: true,
+		}
+		context.Respond(msg)
 	} else {
 		msg.Response = &messages.Remove_Response{
 			Success: false,
