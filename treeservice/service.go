@@ -10,9 +10,8 @@ import (
 
 type Service struct {
 	//Place to store all the trees managed by the service
-	trees     map[int32]Tree
-	nextId    func() int32
-	nextToken func() string
+	trees  map[int32]Tree
+	nextId func() int32
 }
 
 type Tree struct {
@@ -20,28 +19,131 @@ type Tree struct {
 	Token string
 }
 
-//hier werden nur CLI MSGs empfangen
+//hier werden nur cli MSGs empfangen
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case *messages.Traverse:
-		service.traverse(msg, context)
+	case *actor.Started:
+		service.nextId = idGenerator()
+	case *messages.Create:
+		service.create(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)
 	case *messages.Search:
 		service.search(msg, context)
-	case *messages.Create:
-		id := service.nextId()
-		token := service.nextToken()
-		root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return tree.NewRoot(msg.MaxElems)
-		}))
-		service.trees[id] = Tree{
-			Root:  root,
-			Token: token,
-		}
-
+	case *messages.Delete:
+		service.delete(msg, context)
+	case *messages.Traverse:
+		service.traverse(msg, context)
 	case *messages.Remove:
 		service.remove(msg, context)
+	}
+}
+
+func (service *Service) create(msg *messages.Create, context actor.Context) {
+	id := service.nextId()
+	token := generateToken()
+	root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+		return tree.NewRoot(msg.MaxElems)
+	}))
+	service.trees[id] = Tree{
+		Root:  root,
+		Token: token,
+	}
+	msg.Response = &messages.Create_Response{
+		Success: true,
+		Id:      id,
+		Token:   token,
+	}
+	context.Respond(msg)
+}
+
+func (service *Service) insert(msg *messages.Insert, context actor.Context) {
+	root, ok := service.getRootNode(msg.Id, msg.Token)
+	if ok {
+		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &inserter{
+				cli: context.Sender(),
+				msg: *msg,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Insert{}, helper)
+	} else {
+		msg.Response = &messages.Insert_Response{
+			Success: false,
+			Error:   "Wrong credentials",
+		}
+		context.Respond(msg)
+	}
+}
+
+func (service *Service) search(msg *messages.Search, context actor.Context) {
+	root, ok := service.getRootNode(msg.Id, msg.Token)
+	if ok {
+		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &searcher{
+				cli: context.Sender(),
+				msg: *msg,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Travers{}, helper)
+	} else {
+		msg.Response = &messages.Search_Response{
+			Success: false,
+			Error:   "Wrong credentials",
+		}
+		context.Respond(msg)
+	}
+}
+
+func (service *Service) delete(msg *messages.Delete, context actor.Context) {
+	root, ok := service.getRootNode(msg.Id, msg.Token)
+	if ok {
+		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &deleter{
+				cli: context.Sender(),
+				msg: *msg,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Delete{Key: msg.Key}, helper)
+	} else {
+		msg.Response = &messages.Delete_Response{
+			Success: false,
+			Error:   "Wrong credentials",
+		}
+		context.Respond(msg)
+	}
+}
+
+func (service *Service) traverse(msg *messages.Traverse, context actor.Context) {
+	root, ok := service.getRootNode(msg.Id, msg.Token)
+	if ok {
+		//spawn traversactor
+		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
+			return &traverser{
+				cli:           context.Sender(),
+				msg:           *msg,
+				nMessagesWait: 1,
+			}
+		}))
+		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
+	} else {
+		msg.Response = &messages.Traverse_Response{
+			Success: false,
+			Error:   "Wrong credentials",
+		}
+		context.Respond(msg)
+	}
+}
+func (service *Service) remove(msg *messages.Remove, context actor.Context) {
+	root, ok := service.getRootNode(msg.Id, msg.Token)
+	if ok {
+		context.Send(root, tree.Kill{})
+	} else {
+		msg.Response = &messages.Remove_Response{
+			Success: false,
+			Error:   "Wrong credentials",
+		}
+		context.Respond(msg)
 	}
 }
 
@@ -61,80 +163,15 @@ func generateToken() string {
 	return string(token)
 }
 
-func (service *Service) insert(msg *messages.Insert, context actor.Context) {
-	id := msg.Id
-	token := msg.Token
-	root, ok := service.getRootNode(id, token)
-	if ok {
-		InsertActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &InsertActor{CLI: context.Sender()}
-		}))
-		context.RequestWithCustomSender(root, tree.Insert{}, InsertActorPID)
-	} else {
-		//TODO Error wrong token/id
-	}
-}
-
-func (service *Service) traverse(msg *messages.Traverse, context actor.Context) {
-	id := msg.Id
-	token := msg.Token
-	root, ok := service.getRootNode(id, token)
-	if ok {
-		//spawn traversactor
-		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &Traversaktor{
-				CLI:           context.Sender(),
-				NMessagesWait: 1,
-			}
-		}))
-		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
-	} else {
-		//TODO Error wrong token/id
-	}
-}
-func (service *Service) search(msg *messages.Search, context actor.Context) {
-	id := msg.Id
-	token := msg.Token
-	root, ok := service.getRootNode(id, token)
-	if ok {
-		//spawn traversactor
-		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
-			return &Traversaktor{
-				CLI:           context.Sender(),
-				NMessagesWait: 1,
-			}
-		}))
-		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
-	} else {
-		//TODO Error wrong token/id
-	}
-}
-
-func (service *Service) remove(msg *messages.Remove, context actor.Context) {
-	id := msg.Id
-	token := msg.Token
-	root, ok := service.getRootNode(id, token)
-	if ok {
-		context.Send(root, tree.Kill{})
-	} else {
-		//TODO Error wrong token/id
-	}
-}
-
 //method to get the pid of the root of the tree matching the token and id
 //if none mach false is returned
 func (service *Service) getRootNode(id int32, token string) (*actor.PID, bool) {
-	tree, ok := service.trees[id]
+	value, ok := service.trees[id]
 	if !ok {
 		return nil, false
 	}
-	if tree.Token != token {
+	if value.Token != token {
 		return nil, false
 	}
-	return tree.Root, true
-}
-
-func (service *Service) areCredentialsValid(id int32, token string) bool {
-	value, ok := service.trees[id]
-	return ok && value.Token == token
+	return value.Root, true
 }
