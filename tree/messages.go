@@ -8,10 +8,10 @@ import "github.com/ob-vss-ws19/blatt-3-chupa-chups/treeservice"
 type Kill struct {
 }
 
-type Travers struct {
+type Traverse struct {
 	TreeValues map[int32]string
 }
-type TraversWaitOneMore struct {
+type TraverseWaitOneMore struct {
 }
 
 type TraverseActor_Msg struct {
@@ -36,11 +36,9 @@ type UpdateMaxLeft struct {
 }
 
 type Error struct {
-	OriginalMsg interface{}
 }
 
 type Success struct {
-	Key         int32
-	Value       string
-	OriginalMsg interface{}
+	Key   int32
+	Value string
 }
