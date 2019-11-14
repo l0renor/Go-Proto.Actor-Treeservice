@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+//J
 type Service struct {
 	//Place to store all the trees managed by the service
 	trees  map[int32]Tree
