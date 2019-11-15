@@ -1,11 +1,12 @@
 package tree
 
 import (
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"sort"
 )
 
-//TODO set caller in CLI/CLI
 // Actor Node --------------------------------------------
 
 type Node struct {
@@ -54,6 +55,7 @@ func (node *Node) Receive(context actor.Context) {
 }
 
 func (node *Node) insert(msg *Insert, context actor.Context) {
+	logger.GetInstance().Info.Println("Insert %v, on %v", msg, node)
 	if node.inner != nil {
 		switch {
 		case msg.Key > node.inner.maxLeft:
@@ -61,12 +63,13 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 		case msg.Key < node.inner.maxLeft:
 			context.RequestWithCustomSender(node.inner.left, msg, context.Sender())
 		case msg.Key == node.inner.maxLeft:
-			context.Respond(Error{OriginalMsg: msg})
+			context.Respond(Error{})
+			logger.GetInstance().Error.Println("key == maxleft Insert %v, on %v", msg, node)
 		}
 	} else if node.leaf != nil {
 		_, ok := node.leaf.values[msg.Key]
 		if ok {
-			context.Respond(&Error{OriginalMsg: msg})
+			context.Respond(&Error{})
 		} else {
 			node.leaf.values[msg.Key] = msg.Value
 			if int32(len(node.leaf.values)) > node.maxElems {
@@ -103,12 +106,14 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 					context.Request(child, &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]})
 				}
 			}
-			context.Respond(&Success{OriginalMsg: msg})
+			logger.GetInstance().Info.Println("Insert successful  %v, on %v", msg, node)
+			context.Respond(&Success{})
 		}
 	}
 }
 
 func (node *Node) search(msg *Search, context actor.Context) {
+	logger.GetInstance().Info.Println("search %v, on %v", msg, node)
 	if node.inner != nil { //IF is inner node
 		var child *actor.PID
 		if msg.Key > node.inner.maxLeft { // bigger -> keep searching on the right
@@ -120,18 +125,20 @@ func (node *Node) search(msg *Search, context actor.Context) {
 	} else { // IF leaf
 		elem, ok := node.leaf.values[msg.Key]
 		if ok {
+			logger.GetInstance().Info.Println("search found %v, on %v", msg, node)
 			context.Respond(Success{
-				Key:         msg.Key,
-				Value:       elem,
-				OriginalMsg: msg,
+				Key:   msg.Key,
+				Value: elem,
 			})
 		} else { //Key not in Tree
-			context.Respond(Error{OriginalMsg: msg})
+			logger.GetInstance().Error.Println("search key not in tree  %v, on %v", msg, node)
+			context.Respond(Error{})
 		}
 	}
 }
 
 func (node *Node) delete(msg *Delete, context actor.Context) {
+	logger.GetInstance().Info.Println("Delete %v, on %v", msg, node)
 	if node.inner != nil { //IF is inner node
 		var child *actor.PID
 		switch {
@@ -142,7 +149,7 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 		}
 		context.RequestWithCustomSender(child, msg, context.Sender())
 	} else if node.leaf != nil { //IF is leaf
-		_, OK := node.leaf.values[msg.Key]
+		val, OK := node.leaf.values[msg.Key]
 		if OK {
 			delete(node.leaf.values, msg.Key)
 			maxLeft := int32(0)
@@ -150,13 +157,20 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 				maxLeft = max(maxLeft, v)
 			}
 			context.Send(context.Parent(), UpdateMaxLeft{NewValue: maxLeft})
+			logger.GetInstance().Info.Println("Delete success %v, on %v", msg, node)
+			context.Respond(Success{
+				Key:   msg.Key,
+				Value: val,
+			})
 		} else {
-			context.Respond(Error{OriginalMsg: msg})
+			logger.GetInstance().Error.Println("delete ke not present %v, on %v", msg, node)
+			context.Respond(Error{})
 		}
 	}
 }
 
 func (node *Node) travers(msg *Traverse, context actor.Context) {
+	logger.GetInstance().Info.Println("Travers %v, on %v", msg, node)
 	if node.inner != nil { //IF is inner node
 		context.RequestWithCustomSender(node.inner.right, Traverse{
 			TreeValues: nil,
@@ -166,6 +180,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 		}, context.Sender())
 		context.Respond(TraverseWaitOneMore{})
 	} else { //IF is leaf
+		logger.GetInstance().Info.Println("Travers finshed send back to helper %v, on %v", msg, node)
 		context.Send(context.Sender(), Traverse{
 			TreeValues: node.leaf.values,
 		})
@@ -173,6 +188,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 }
 
 func (node *Node) kill(context actor.Context) {
+	logger.GetInstance().Info.Println("Kill on %v", node)
 	if node.inner != nil { //IF is inner node
 		context.Send(node.inner.right, Kill{})
 		context.Send(node.inner.left, Kill{})
@@ -180,6 +196,15 @@ func (node *Node) kill(context actor.Context) {
 
 	} else { //IF is leaf
 		context.Stop(context.Self())
+	}
+}
+
+func (node *Node) String() string {
+	if node.inner != nil {
+		return fmt.Sprintf("Inner Node\n left:%v\nright: %v \nmaxleft %v", node.inner.left, node.inner.right, node.inner.maxLeft)
+	} else {
+		return fmt.Sprintf("Leaf:\n"+
+			"Values: %v", node.leaf.values)
 	}
 }
 
