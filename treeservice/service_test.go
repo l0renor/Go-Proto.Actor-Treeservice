@@ -9,19 +9,35 @@ import (
 
 func TestCreate(t *testing.T) {
 	context := actor.EmptyRootContext
-	testService := &Service{}
 	props := actor.PropsFromProducer(func() actor.Actor {
-		return testService
+		return &Service{}
 	})
 	servicePid := context.Spawn(props)
+
 	context.Send(servicePid, messages.Create{
 		MaxElems: 2,
 		Response: nil,
 	})
+
 	time.Sleep(2 * time.Second)
-	_, ok := testService.trees[1]
-	if !ok {
-		t.Error("No Tree was created")
-	}
+
+	//f := context.RequestFuture(servicePid,messages.Create{
+	//	MaxElems: 2,
+	//	Response: nil,
+	//},2*time.Second)
+	//
+	//res, err := f.Result()
+	//	if err!=nil {
+	//	t.Error("Timeout create Tree")
+	//}
+	//switch msg := res.(type) {
+	//case *messages.Create:
+	//	if !msg.Response.Success{
+	//		t.Error("Create -> Response -> sucsess == false")
+	//	}
+	//	if msg.Response.Id != 1{
+	//		t.Errorf("Initial id  should be 1 was %v",msg.Response.Id)
+	//	}
+	//}
 
 }
