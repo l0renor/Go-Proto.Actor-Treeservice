@@ -56,7 +56,7 @@ func (service *Service) create(msg *messages.Create, context actor.Context) {
 		Id:      id,
 		Token:   token,
 	}
-	logger.GetInstance().Info.Println("Created Tree ID: %v, token: %v root: %v\n", id, token, root)
+	logger.GetInstance().Info.Printf("Created Tree ID: %v, token: %v root: %v\n", id, token, root)
 	context.Respond(msg)
 }
 
