@@ -29,11 +29,6 @@ type traverser struct {
 	treemap       map[int32]string
 }
 
-type Tuple struct {
-	Key   int32
-	Value string
-}
-
 func (state *inserter) Receive(context actor.Context) {
 	switch _ := context.Message().(type) {
 	case tree.Success:
