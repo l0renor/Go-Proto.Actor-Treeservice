@@ -55,7 +55,7 @@ func (node *Node) Receive(context actor.Context) {
 }
 
 func (node *Node) insert(msg *Insert, context actor.Context) {
-	logger.GetInstance().Info.Println("Insert %v, on %v", msg, node)
+	logger.GetInstance().Info.Printf("Insert %v, on %v\n", msg, node)
 	if node.inner != nil {
 		switch {
 		case msg.Key > node.inner.maxLeft:
@@ -64,7 +64,7 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 			context.RequestWithCustomSender(node.inner.left, msg, context.Sender())
 		case msg.Key == node.inner.maxLeft:
 			context.Respond(Error{})
-			logger.GetInstance().Error.Println("key == maxleft Insert %v, on %v", msg, node)
+			logger.GetInstance().Error.Printf("key == maxleft Insert %v, on %v\n", msg, node)
 		}
 	} else if node.leaf != nil {
 		_, ok := node.leaf.values[msg.Key]
@@ -106,14 +106,14 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 					context.Request(child, &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]})
 				}
 			}
-			logger.GetInstance().Info.Println("Insert successful  %v, on %v", msg, node)
+			logger.GetInstance().Info.Printf("Insert successful  %v, on %v\n", msg, node)
 			context.Respond(&Success{})
 		}
 	}
 }
 
 func (node *Node) search(msg *Search, context actor.Context) {
-	logger.GetInstance().Info.Println("search %v, on %v", msg, node)
+	logger.GetInstance().Info.Printf("search %v, on %v\n", msg, node)
 	if node.inner != nil { //IF is inner node
 		var child *actor.PID
 		if msg.Key > node.inner.maxLeft { // bigger -> keep searching on the right
@@ -125,20 +125,20 @@ func (node *Node) search(msg *Search, context actor.Context) {
 	} else { // IF leaf
 		elem, ok := node.leaf.values[msg.Key]
 		if ok {
-			logger.GetInstance().Info.Println("search found %v, on %v", msg, node)
+			logger.GetInstance().Info.Printf("search found %v, on %v\n", msg, node)
 			context.Respond(Success{
 				Key:   msg.Key,
 				Value: elem,
 			})
 		} else { //Key not in Tree
-			logger.GetInstance().Error.Println("search key not in tree  %v, on %v", msg, node)
+			logger.GetInstance().Error.Printf("search key not in tree  %v, on %v\n", msg, node)
 			context.Respond(Error{})
 		}
 	}
 }
 
 func (node *Node) delete(msg *Delete, context actor.Context) {
-	logger.GetInstance().Info.Println("Delete %v, on %v", msg, node)
+	logger.GetInstance().Info.Printf("Delete %v, on %v\n", msg, node)
 	if node.inner != nil { //IF is inner node
 		var child *actor.PID
 		switch {
@@ -157,20 +157,20 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 				maxLeft = max(maxLeft, v)
 			}
 			context.Send(context.Parent(), UpdateMaxLeft{NewValue: maxLeft})
-			logger.GetInstance().Info.Println("Delete success %v, on %v", msg, node)
+			logger.GetInstance().Info.Printf("Delete success %v, on %v\n", msg, node)
 			context.Respond(Success{
 				Key:   msg.Key,
 				Value: val,
 			})
 		} else {
-			logger.GetInstance().Error.Println("delete ke not present %v, on %v", msg, node)
+			logger.GetInstance().Error.Printf("delete ke not present %v, on %v\n", msg, node)
 			context.Respond(Error{})
 		}
 	}
 }
 
 func (node *Node) travers(msg *Traverse, context actor.Context) {
-	logger.GetInstance().Info.Println("Travers %v, on %v", msg, node)
+	logger.GetInstance().Info.Printf("Travers %v, on %v\n", msg, node)
 	if node.inner != nil { //IF is inner node
 		context.RequestWithCustomSender(node.inner.right, Traverse{
 			TreeValues: nil,
@@ -180,7 +180,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 		}, context.Sender())
 		context.Respond(TraverseWaitOneMore{})
 	} else { //IF is leaf
-		logger.GetInstance().Info.Println("Travers finshed send back to helper %v, on %v", msg, node)
+		logger.GetInstance().Info.Printf("Travers finshed send back to helper %v, on %v\n", msg, node)
 		context.Send(context.Sender(), Traverse{
 			TreeValues: node.leaf.values,
 		})
@@ -188,7 +188,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 }
 
 func (node *Node) kill(context actor.Context) {
-	logger.GetInstance().Info.Println("Kill on %v", node)
+	logger.GetInstance().Info.Printf("Kill on %v\n", node)
 	if node.inner != nil { //IF is inner node
 		context.Send(node.inner.right, Kill{})
 		context.Send(node.inner.left, Kill{})
