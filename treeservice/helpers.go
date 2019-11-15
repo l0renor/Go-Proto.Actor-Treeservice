@@ -30,7 +30,7 @@ type traverser struct {
 }
 
 func (state *inserter) Receive(context actor.Context) {
-	switch _ := context.Message().(type) {
+	switch context.Message().(type) {
 	case tree.Success:
 		state.msg.Response = &messages.Insert_Response{
 			Success: true,
@@ -67,7 +67,7 @@ func (state *searcher) Receive(context actor.Context) {
 }
 
 func (state *deleter) Receive(context actor.Context) {
-	switch _ := context.Message().(type) {
+	switch context.Message().(type) {
 	case tree.Success:
 		state.msg.Response = &messages.Delete_Response{
 			Success: true,

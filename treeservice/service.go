@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-//J
 type Service struct {
 	//Place to store all the trees managed by the service
 	trees  map[int32]Tree
@@ -73,7 +72,7 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 		context.RequestWithCustomSender(root, tree.Insert{}, helper)
 		logger.GetInstance().Info.Printf("Started insert ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
 	} else {
-		logger.GetInstance().Info.Println("Wrong credentials for insert\n")
+		logger.GetInstance().Info.Println("Wrong credentials for insert")
 		msg.Response = &messages.Insert_Response{
 			Success: false,
 			Error:   "Wrong credentials",
