@@ -26,6 +26,7 @@ func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *actor.Started:
 		service.nextId = idGenerator()
+		service.trees = make(map[int32]Tree)
 	case *messages.Create:
 		service.create(msg, context)
 	case *messages.Insert:
