@@ -7,8 +7,8 @@ pipeline {
             }
             steps {
                 sh 'cd messages && make regenerate'
-                sh 'cd treeservice && go build main.go'
-                sh 'cd treecli && go build main.go'
+                sh 'cd treeservice && go build main.go service.go helpers.go'
+                sh 'cd treecli && go build main.go receiver.go'
             }
         }
         stage('Test') {
@@ -22,7 +22,7 @@ pipeline {
         stage('Lint') {
             agent {
                 docker { image 'obraun/vss-protoactor-jenkins' }
-            }   
+            }
             steps {
                 sh 'golangci-lint run --deadline 20m --enable-all'
             }
