@@ -3,11 +3,13 @@ package service
 import (
 	"crypto/sha1"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/tree"
 	"time"
 )
 
+//J
 type Service struct {
 	//Place to store all the trees managed by the service
 	trees  map[int32]Tree
@@ -54,6 +56,7 @@ func (service *Service) create(msg *messages.Create, context actor.Context) {
 		Id:      id,
 		Token:   token,
 	}
+	logger.GetInstance().Info.Println("Created Tree ID: %v, token: %v root: %v", id, token, root)
 	context.Respond(msg)
 }
 
@@ -67,7 +70,9 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 			}
 		}))
 		context.RequestWithCustomSender(root, tree.Insert{}, helper)
+		logger.GetInstance().Info.Println("Started insert ID:%v,token: %v, root:%v ", msg.Id, msg.Token, root)
 	} else {
+		logger.GetInstance().Info.Println("Wrong credentials for insert")
 		msg.Response = &messages.Insert_Response{
 			Success: false,
 			Error:   "Wrong credentials",
@@ -85,8 +90,10 @@ func (service *Service) search(msg *messages.Search, context actor.Context) {
 				msg: *msg,
 			}
 		}))
-		context.RequestWithCustomSender(root, tree.Travers{}, helper)
+		context.RequestWithCustomSender(root, tree.Search{Key: msg.Key}, helper)
+		logger.GetInstance().Info.Println("Started search for %v ID:%v,token: %v, root:%v ", msg.Key, msg.Id, msg.Token, root)
 	} else {
+		logger.GetInstance().Info.Println("Wrong credentials for search")
 		msg.Response = &messages.Search_Response{
 			Success: false,
 			Error:   "Wrong credentials",
@@ -104,8 +111,10 @@ func (service *Service) delete(msg *messages.Delete, context actor.Context) {
 				msg: *msg,
 			}
 		}))
+		logger.GetInstance().Info.Println("Started delete for %v ID:%v,token: %v, root:%v ", msg.Key, msg.Id, msg.Token, root)
 		context.RequestWithCustomSender(root, tree.Delete{Key: msg.Key}, helper)
 	} else {
+		logger.GetInstance().Info.Println("Wrong credentials for delete")
 		msg.Response = &messages.Delete_Response{
 			Success: false,
 			Error:   "Wrong credentials",
@@ -125,8 +134,10 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 				nMessagesWait: 1,
 			}
 		}))
-		context.RequestWithCustomSender(root, tree.Travers{}, traversActorPID)
+		logger.GetInstance().Info.Println("Started raverse ID:%v,token: %v, root:%v ", msg.Id, msg.Token, root)
+		context.RequestWithCustomSender(root, tree.Traverse{}, traversActorPID)
 	} else {
+		logger.GetInstance().Info.Println("Wrong credentials for traverse")
 		msg.Response = &messages.Traverse_Response{
 			Success: false,
 			Error:   "Wrong credentials",
@@ -142,7 +153,10 @@ func (service *Service) remove(msg *messages.Remove, context actor.Context) {
 			Success: true,
 		}
 		context.Respond(msg)
+		delete(service.trees, msg.Id)
+		logger.GetInstance().Info.Println("Started remove ID:%v,token: %v, root:%v ", msg.Id, msg.Token, root)
 	} else {
+		logger.GetInstance().Info.Println("Wrong credentials for remove")
 		msg.Response = &messages.Remove_Response{
 			Success: false,
 			Error:   "Wrong credentials",

@@ -91,7 +91,7 @@ func (state *deleter) Receive(context actor.Context) {
 
 func (state *traverser) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case tree.Travers:
+	case tree.Traverse:
 		for k, v := range msg.TreeValues { // merge maps
 			state.treemap[k] = v
 		}
@@ -114,8 +114,7 @@ func (state *traverser) Receive(context actor.Context) {
 			//context.Send(state.cli, tree.TraverseActor_Msg{tree: treeTuple}) TODO send protomsg to cli
 			context.Stop(context.Self())
 		}
-
-	case tree.TraversWaitOneMore:
+	case tree.TraverseWaitOneMore:
 		state.nMessagesWait++
 	}
 }
