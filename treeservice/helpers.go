@@ -110,7 +110,7 @@ func (state *traverser) Receive(context actor.Context) {
 				Tuples:  treeTuple,
 				Error:   "",
 			}
-			context.Send(state.cli, msg)
+			context.Send(state.cli, state.msg)
 			context.Stop(context.Self())
 		}
 	case tree.TraverseWaitOneMore:
