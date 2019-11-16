@@ -47,9 +47,9 @@ func (node *Node) Receive(context actor.Context) {
 		node.delete(msg, context)
 	case *UpdateMaxLeft:
 		node.inner.maxLeft = msg.NewValue
-	case Traverse:
-		node.travers(&msg, context)
-	case Kill:
+	case *Traverse:
+		node.travers(msg, context)
+	case *Kill:
 		node.kill(context)
 	}
 }

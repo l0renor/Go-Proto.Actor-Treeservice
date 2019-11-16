@@ -77,14 +77,14 @@ func TestCreate(t *testing.T) {
 }
 func TestInsert(t *testing.T) {
 	for i := 0; i < 1; i++ { //insert 0 to 9
-		context.Send(servicePID, messages.Insert{
+		context.Send(servicePID, &messages.Insert{
 			Id:       1,
 			Token:    token,
 			Key:      int32(i),
 			Value:    string(i),
 			Response: nil,
 		})
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 500)
 		if globl_msg == nil {
 			t.Error("Insert Response missing ")
 		}
