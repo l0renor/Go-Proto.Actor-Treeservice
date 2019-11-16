@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+type tester struct {
+}
+
+var msg interface{}
+
+func (tester *tester) Receive(context actor.Context) {
+	msg = context.Message()
+}
+
 func TestCreate(t *testing.T) {
 	context := actor.EmptyRootContext
 	props := actor.PropsFromProducer(func() actor.Actor {
@@ -14,12 +23,23 @@ func TestCreate(t *testing.T) {
 	})
 	servicePid := context.Spawn(props)
 
-	context.Send(servicePid, messages.Create{
-		MaxElems: 2,
-		Response: nil,
+	props = actor.PropsFromProducer(func() actor.Actor {
+		return &tester{}
 	})
+	testerPid := context.Spawn(props)
 
-	time.Sleep(2 * time.Second)
+	context.RequestWithCustomSender(servicePid, &messages.Create{
+		MaxElems: 3,
+		Response: nil,
+	}, testerPid)
+	time.Sleep(100 * time.Millisecond)
+	switch thismsg := msg.(type) {
+	case *messages.Create:
+		if thismsg.Response.Id != 1 {
+			t.Errorf("Wrong id wanted 1 got %v", thismsg.Response.Id)
+		}
+
+	}
 
 	//f := context.RequestFuture(servicePid,messages.Create{
 	//	MaxElems: 2,

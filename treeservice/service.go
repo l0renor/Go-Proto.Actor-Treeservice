@@ -24,9 +24,11 @@ type Tree struct {
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *actor.Started:
+		logger.GetInstance().Info.Println("stated service")
 		service.nextId = idGenerator()
 		service.trees = make(map[int32]Tree)
 	case *messages.Create:
+		logger.GetInstance().Info.Println("recived create")
 		service.create(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)
