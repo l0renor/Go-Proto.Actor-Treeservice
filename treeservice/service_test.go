@@ -73,6 +73,7 @@ func TestCreate(t *testing.T) {
 			t.Error("Token missing")
 		}
 	}
+	globl_msg = nil
 }
 func TestInsert(t *testing.T) {
 	for i := 0; i < 1; i++ { //insert 0 to 9
@@ -84,12 +85,16 @@ func TestInsert(t *testing.T) {
 			Response: nil,
 		})
 		time.Sleep(time.Millisecond * 100)
+		if globl_msg == nil {
+			t.Error("Insert Response missing ")
+		}
 		switch msg := globl_msg.(type) {
 		case *messages.Insert:
 			if !msg.Response.Success {
 				t.Error("Insert -> Response -> sucsess == false")
 			}
 		}
+		globl_msg = nil
 	}
 	//validate that the values are preseent
 	context.Send(servicePID, &messages.Traverse{
@@ -106,5 +111,5 @@ func TestInsert(t *testing.T) {
 		}
 		print(msg.Response.Tuples)
 	}
-
+	globl_msg = nil
 }
