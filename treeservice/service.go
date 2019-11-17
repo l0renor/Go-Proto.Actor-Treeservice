@@ -28,7 +28,7 @@ func (service *Service) Receive(context actor.Context) {
 		service.nextId = idGenerator()
 		service.trees = make(map[int32]Tree)
 	case *messages.Create:
-		logger.GetInstance().Info.Println("recived create")
+		logger.GetInstance().Info.Println("recieved create")
 		service.create(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)

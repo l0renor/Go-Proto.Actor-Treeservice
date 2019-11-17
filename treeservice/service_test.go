@@ -42,7 +42,7 @@ func TestCreate(t *testing.T) {
 	switch msg := res.(type) {
 	case *messages.Create:
 		if !msg.Response.Success {
-			t.Error("Create -> Response -> sucsess == false")
+			t.Error("Create -> Response -> Success == false")
 		}
 		if msg.Response.Id != 1 {
 			t.Errorf("Initial id  should be 1 was %v", msg.Response.Id)
@@ -78,7 +78,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	for i := 2; i < 4; i++ { //insert 2 to 9
+	for i := 2; i < 10; i++ { //insert 2 to 9
 		f := context.RequestFuture(servicePID, &messages.Insert{
 			Id:       1,
 			Token:    token,
