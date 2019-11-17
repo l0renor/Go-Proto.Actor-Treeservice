@@ -113,11 +113,9 @@ func TestInsert(t *testing.T) {
 	switch msg := res.(type) {
 	case messages.Traverse:
 		if !msg.Response.Success {
-
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		fmt.Sprintf("Traverse: %v", msg.Response.Tuples)
-
+		fmt.Printf("Traverse: %v", msg.Response.Tuples)
 	}
 }
 
