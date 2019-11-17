@@ -99,15 +99,15 @@ func (state *traverser) Receive(context actor.Context) {
 		if state.nMessagesWait == 0 { //all leaves have answered actor can anwser to cli and die
 			treeTuple := make([]*messages.Traverse_Response_Tuple, 0)
 			//sort map and make it a slice
-			keys := make([]int, len(msg.TreeValues))
+			keys := make([]int, 0)
 			for k := range msg.TreeValues {
 				keys = append(keys, int(k))
 			}
 			sort.Ints(keys)
-			for key := range keys {
+			for i := range keys {
 				treeTuple = append(treeTuple, &messages.Traverse_Response_Tuple{
-					Key:   int32(key),
-					Value: msg.TreeValues[int32(key)],
+					Key:   int32(keys[i]),
+					Value: msg.TreeValues[int32(keys[i])],
 				})
 			}
 			state.msg.Response = &messages.Traverse_Response{
@@ -120,6 +120,6 @@ func (state *traverser) Receive(context actor.Context) {
 			context.Stop(context.Self())
 		}
 	case *tree.TraverseWaitOneMore:
-		state.nMessagesWait++
+		state.nMessagesWait += 1
 	}
 }
