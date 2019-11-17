@@ -176,18 +176,12 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 func (node *Node) traverse(msg *Traverse, context actor.Context) {
 	logger.GetInstance().Info.Printf("Traverse %v, on %v\n", msg, node)
 	if node.inner != nil { //IF is inner node
-		context.RequestWithCustomSender(node.inner.right, Traverse{
-			TreeValues: nil,
-		}, context.Sender())
-		context.RequestWithCustomSender(node.inner.left, Traverse{
-			TreeValues: nil,
-		}, context.Sender())
-		context.Respond(TraverseWaitOneMore{})
+		context.RequestWithCustomSender(node.inner.right, &Traverse{}, context.Sender())
+		context.RequestWithCustomSender(node.inner.left, &Traverse{}, context.Sender())
+		context.Respond(&TraverseWaitOneMore{})
 	} else { //IF is leaf
 		logger.GetInstance().Info.Printf("Traverse finshed send back to helper %v, on %v\n", msg, node)
-		context.Send(context.Sender(), Traverse{
-			TreeValues: node.leaf.values,
-		})
+		context.Send(context.Sender(), &Traverse{TreeValues: node.leaf.values})
 	}
 }
 

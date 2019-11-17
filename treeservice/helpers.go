@@ -90,8 +90,6 @@ func (state *traverser) Receive(context actor.Context) {
 	logger.GetInstance().Info.Printf("Traverser state %v", state)
 	logger.GetInstance().Info.Printf("Traverser got msg %T", context.Message())
 	switch msg := context.Message().(type) {
-	case *actor.Started:
-		state.treemap = make(map[int32]string)
 	case *tree.Traverse:
 		logger.GetInstance().Info.Printf("Traverser got values %v", msg.TreeValues)
 		for k, v := range msg.TreeValues { // merge maps

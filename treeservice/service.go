@@ -135,6 +135,7 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 				cli:           context.Sender(),
 				msg:           *msg,
 				nMessagesWait: 1,
+				treemap:       make(map[int32]string),
 			}
 		}))
 		logger.GetInstance().Info.Printf("Started traverse ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
