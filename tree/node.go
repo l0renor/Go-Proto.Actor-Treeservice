@@ -73,6 +73,7 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 		} else {
 			node.leaf.values[msg.Key] = msg.Value
 			if int32(len(node.leaf.values)) > node.maxElems {
+				logger.GetInstance().Info.Println("Leaf has more than max elems, new nodes have to be created")
 				// Leaf becomes inner node
 				node.inner = &Inner{}
 				node.inner.left = context.Spawn(actor.PropsFromProducer(func() actor.Actor {
@@ -89,7 +90,7 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 						leaf:     &Leaf{values: make(map[int32]string, node.maxElems)},
 					}
 				}))
-				keys := make([]int, node.maxElems+1)
+				keys := make([]int, 0)
 				for k := range node.leaf.values {
 					keys = append(keys, int(k))
 				}
@@ -103,7 +104,9 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 					} else {
 						child = node.inner.right
 					}
-					context.Request(child, &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]})
+					msg := &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]}
+					logger.GetInstance().Info.Printf("Sent Insert Request %v to new child %v", msg, child)
+					context.Request(child, msg)
 				}
 			}
 			logger.GetInstance().Info.Printf("Insert successful  %v, on %v\n", msg, node)

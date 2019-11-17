@@ -28,7 +28,7 @@ func (service *Service) Receive(context actor.Context) {
 		service.nextId = idGenerator()
 		service.trees = make(map[int32]Tree)
 	case *messages.Create:
-		logger.GetInstance().Info.Println("recived create")
+		logger.GetInstance().Info.Println("recieved create")
 		service.create(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)
@@ -137,7 +137,7 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 				nMessagesWait: 1,
 			}
 		}))
-		logger.GetInstance().Info.Printf("Started raverse ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
+		logger.GetInstance().Info.Printf("Started traverse, ID:%v,token: %s, root:%v \n", msg.Id, msg.Token, root)
 		context.RequestWithCustomSender(root, tree.Traverse{}, traversActorPID)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for traverse\n")
