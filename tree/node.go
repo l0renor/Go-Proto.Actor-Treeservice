@@ -182,7 +182,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 		context.Respond(TraverseWaitOneMore{})
 	} else { //IF is leaf
 		logger.GetInstance().Info.Printf("Travers finshed send back to helper %v, on %v\n", msg, node)
-		context.Send(context.Sender(), Traverse{
+		context.Send(context.Sender(), &Traverse{
 			TreeValues: node.leaf.values,
 		})
 	}

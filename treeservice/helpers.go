@@ -31,7 +31,7 @@ type traverser struct {
 }
 
 func (state *inserter) Receive(context actor.Context) {
-	logger.GetInstance().Info.Printf("Inserter state %v", state)
+	//logger.GetInstance().Info.Printf("Inserter state %v", state)
 	switch context.Message().(type) {
 	case *tree.Success:
 		state.msg.Response = &messages.Insert_Response{
@@ -91,6 +91,7 @@ func (state *traverser) Receive(context actor.Context) {
 	logger.GetInstance().Info.Printf("Traverser got msg %T", context.Message())
 	switch msg := context.Message().(type) {
 	case *tree.Traverse:
+		logger.GetInstance().Info.Printf("Traverser got values %v", msg.TreeValues)
 		for k, v := range msg.TreeValues { // merge maps
 			state.treemap[k] = v
 		}
@@ -115,6 +116,7 @@ func (state *traverser) Receive(context actor.Context) {
 				Error:   "",
 			}
 			context.Send(state.cli, state.msg)
+			logger.GetInstance().Info.Println("Traverser send back to cli")
 			context.Stop(context.Self())
 		}
 	case *tree.TraverseWaitOneMore:
