@@ -137,8 +137,8 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 				nMessagesWait: 1,
 			}
 		}))
-		logger.GetInstance().Info.Printf("Started traverse, ID:%v,token: %s, root:%v \n", msg.Id, msg.Token, root)
-		context.RequestWithCustomSender(root, tree.Traverse{}, traversActorPID)
+		logger.GetInstance().Info.Printf("Started traverse ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
+		context.RequestWithCustomSender(root, &tree.Traverse{}, traversActorPID)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for traverse\n")
 		msg.Response = &messages.Traverse_Response{

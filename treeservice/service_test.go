@@ -78,7 +78,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	for i := 2; i < 10; i++ { //insert 0 to 9
+	for i := 2; i < 4; i++ { //insert 2 to 9
 		f := context.RequestFuture(servicePID, &messages.Insert{
 			Id:       1,
 			Token:    token,
