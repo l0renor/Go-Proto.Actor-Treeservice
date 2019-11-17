@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -77,12 +78,12 @@ func TestCreate(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	for i := 0; i < 10; i++ { //insert 0 to 9
+	for i := 2; i < 10; i++ { //insert 0 to 9
 		f := context.RequestFuture(servicePID, &messages.Insert{
 			Id:       1,
 			Token:    token,
 			Key:      int32(i),
-			Value:    string(i),
+			Value:    strconv.Itoa(i),
 			Response: nil,
 		}, 100*time.Millisecond)
 
