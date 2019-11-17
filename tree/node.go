@@ -49,7 +49,7 @@ func (node *Node) Receive(context actor.Context) {
 	case *UpdateMaxLeft:
 		node.inner.maxLeft = msg.NewValue
 	case *Traverse:
-		node.travers(msg, context)
+		node.traverse(msg, context)
 	case *Kill:
 		node.kill(context)
 	}
@@ -98,14 +98,14 @@ func (node *Node) insert(msg *Insert, context actor.Context) {
 				sort.Ints(keys)
 				indexMaxLeft := (node.maxElems + 1) / 2
 				node.inner.maxLeft = int32(keys[indexMaxLeft])
-				for _, k := range keys {
+				for i := range keys {
 					var child *actor.PID
-					if int32(k) <= indexMaxLeft {
+					if int32(i) <= indexMaxLeft {
 						child = node.inner.left
 					} else {
 						child = node.inner.right
 					}
-					msg := &Insert{Key: int32(keys[k]), Value: node.leaf.values[int32(keys[k])]}
+					msg := &Insert{Key: int32(keys[i]), Value: node.leaf.values[int32(keys[i])]}
 					logger.GetInstance().Info.Printf("Sent Insert Request %v to new child %v", msg, child)
 					context.Request(child, msg)
 				}
@@ -173,8 +173,8 @@ func (node *Node) delete(msg *Delete, context actor.Context) {
 	}
 }
 
-func (node *Node) travers(msg *Traverse, context actor.Context) {
-	logger.GetInstance().Info.Printf("Travers %v, on %v\n", msg, node)
+func (node *Node) traverse(msg *Traverse, context actor.Context) {
+	logger.GetInstance().Info.Printf("Traverse %v, on %v\n", msg, node)
 	if node.inner != nil { //IF is inner node
 		context.RequestWithCustomSender(node.inner.right, Traverse{
 			TreeValues: nil,
@@ -184,7 +184,7 @@ func (node *Node) travers(msg *Traverse, context actor.Context) {
 		}, context.Sender())
 		context.Respond(TraverseWaitOneMore{})
 	} else { //IF is leaf
-		logger.GetInstance().Info.Printf("Travers finshed send back to helper %v, on %v\n", msg, node)
+		logger.GetInstance().Info.Printf("Traverse finshed send back to helper %v, on %v\n", msg, node)
 		context.Send(context.Sender(), Traverse{
 			TreeValues: node.leaf.values,
 		})
