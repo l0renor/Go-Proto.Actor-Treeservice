@@ -16,6 +16,7 @@ var servicePID *actor.PID
 var testerPID *actor.PID
 var context *actor.RootContext
 var token string
+var token2 string
 
 func (test *tester) Receive(context actor.Context) {
 	globl_msg = context.Message()
@@ -72,11 +73,12 @@ func TestCreate(t *testing.T) {
 		if msg.Response.Token == "" {
 			t.Error("Token missing")
 		}
+		token2 = msg.Response.Token
 	}
 	globl_msg = nil
 }
 
-func TestInsert(t *testing.T) {
+func TestInsert_Traverse(t *testing.T) {
 	for i := 2; i < 10; i++ { //insert 2 to 9
 		f := context.RequestFuture(servicePID, &messages.Insert{
 			Id:       1,
@@ -96,6 +98,31 @@ func TestInsert(t *testing.T) {
 			if !msg.Success {
 				t.Error("Insert -> Response -> sucsess == false")
 			}
+		}
+	}
+	for i := 2; i < 10; i++ { //insert 2 to 9 again should result in Key already present error
+		f := context.RequestFuture(servicePID, &messages.Insert{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Value:    strconv.Itoa(i),
+			Response: nil,
+		}, 100*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout insert Tree")
+		}
+
+		switch msg := res.(type) {
+		case *messages.Insert_Response:
+			if msg.Success {
+				t.Error("Insert -> Response -> sucsess should bee false")
+			}
+			if msg.Error != "Key already present" {
+				t.Error("Insert wrong error got " + msg.Error)
+			}
+
 		}
 	}
 	f := context.RequestFuture(servicePID, &messages.Traverse{
@@ -175,5 +202,130 @@ func TestSearch(t *testing.T) {
 			}
 		}
 	}
+	//search on empty
+	for i := 10; i < 20; i++ {
+		f := context.RequestFuture(servicePID, &messages.Search{
+			Id:       2,
+			Token:    token2,
+			Key:      int32(i),
+			Response: nil,
+		}, 500*time.Millisecond)
 
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout search Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Search:
+			if msg.Response.Success {
+				t.Error("Search Response  successful Key was NOT present")
+			}
+			if msg.Response.Error != "Key not found" {
+				t.Error("Wrong error n key not found: " + msg.Response.Error)
+			}
+		}
+	}
+
+}
+func TestDelete(t *testing.T) {
+	for i := 2; i < 10; i++ { //delete present key -> sucsess
+		f := context.RequestFuture(servicePID, &messages.Delete{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Response: nil,
+		}, 500*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout delete Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Delete:
+			if !msg.Response.Success {
+				t.Error(" Delete not successful Key was present")
+			}
+		}
+	}
+	for i := 2; i < 10; i++ { //delete missing key -> error
+		f := context.RequestFuture(servicePID, &messages.Delete{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Response: nil,
+		}, 500*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout delete Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Delete:
+			if msg.Response.Success {
+				t.Error(" Delete  successful Key was NOT present")
+			}
+		}
+	}
+
+}
+
+func TestRemove_Creds(t *testing.T) {
+	//remove present Tree
+	f := context.RequestFuture(servicePID, &messages.Remove{
+		Id:       1,
+		Token:    token,
+		Response: nil,
+	}, 500*time.Millisecond)
+
+	res, err := f.Result()
+	if err != nil {
+		t.Error("Timeout remove Tree")
+	}
+
+	switch msg := res.(type) {
+	case messages.Remove:
+		if !msg.Response.Success {
+			t.Error(" Remove not  successful")
+		}
+	}
+	//remove not presnt tree
+	f = context.RequestFuture(servicePID, &messages.Remove{
+		Id:       1,
+		Token:    token,
+		Response: nil,
+	}, 500*time.Millisecond)
+
+	res, err = f.Result()
+	if err != nil {
+		t.Error("Timeout remove Tree")
+	}
+
+	switch msg := res.(type) {
+	case messages.Remove:
+		if msg.Response.Success {
+			t.Error(" Remove successful  Tree was not present")
+		}
+	}
+
+	//remove present  with wrong creds
+	f = context.RequestFuture(servicePID, &messages.Remove{
+		Id:       2,
+		Token:    token,
+		Response: nil,
+	}, 500*time.Millisecond)
+
+	res, err = f.Result()
+	if err != nil {
+		t.Error("Timeout remove Tree")
+	}
+
+	switch msg := res.(type) {
+	case messages.Remove:
+		if msg.Response.Success {
+			t.Error(" Remove successful  wrong creds")
+		}
+	}
 }
