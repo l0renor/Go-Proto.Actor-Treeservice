@@ -93,7 +93,7 @@ func (service *Service) search(msg *messages.Search, context actor.Context) {
 				msg: *msg,
 			}
 		}))
-		context.RequestWithCustomSender(root, tree.Search{Key: msg.Key}, helper)
+		context.RequestWithCustomSender(root, &tree.Search{Key: msg.Key}, helper)
 		logger.GetInstance().Info.Printf("Started search for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id, msg.Token, root)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for search\n")
@@ -115,7 +115,7 @@ func (service *Service) delete(msg *messages.Delete, context actor.Context) {
 			}
 		}))
 		logger.GetInstance().Info.Printf("Started delete for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id, msg.Token, root)
-		context.RequestWithCustomSender(root, tree.Delete{Key: msg.Key}, helper)
+		context.RequestWithCustomSender(root, &tree.Delete{Key: msg.Key}, helper)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for delete\n")
 		msg.Response = &messages.Delete_Response{
@@ -152,7 +152,7 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 func (service *Service) remove(msg *messages.Remove, context actor.Context) {
 	root, ok := service.getRootNode(msg.Id, msg.Token)
 	if ok {
-		context.Send(root, tree.Kill{})
+		context.Send(root, &tree.Kill{})
 		msg.Response = &messages.Remove_Response{
 			Success: true,
 		}
