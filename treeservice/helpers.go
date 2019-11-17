@@ -94,6 +94,7 @@ func (state *traverser) Receive(context actor.Context) {
 		logger.GetInstance().Info.Printf("Traverser got values %v", msg.TreeValues)
 		for k, v := range msg.TreeValues { // merge maps
 			state.treemap[k] = v
+			logger.GetInstance().Info.Printf("Append  %v", msg.TreeValues)
 		}
 		state.nMessagesWait--
 		if state.nMessagesWait == 0 { //all leaves have answered actor can anwser to cli and die

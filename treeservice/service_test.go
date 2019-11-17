@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"strconv"
@@ -115,45 +114,66 @@ func TestInsert(t *testing.T) {
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		fmt.Printf("Traverse: %v", msg.Response.Tuples)
+		want := [8]*messages.Traverse_Response_Tuple{&messages.Traverse_Response_Tuple{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 3, Value: "3"}, &messages.Traverse_Response_Tuple{Key: 4, Value: "4"}, &messages.Traverse_Response_Tuple{Key: 5, Value: "5"}, &messages.Traverse_Response_Tuple{Key: 6, Value: "6"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 8, Value: "8"}, &messages.Traverse_Response_Tuple{Key: 9, Value: "9"}}
+		for e := range want {
+			if want[e].Key != msg.Response.Tuples[e].Key {
+				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)
+			}
+			if want[e].Value != msg.Response.Tuples[e].Value {
+				t.Errorf("Missmatch in traverse Value w:%v, is: %v", want[e].Value, msg.Response.Tuples[e].Value)
+			}
+		}
 	}
 }
 
-//func TestInsert(t *testing.T) {
-//	for i := 0; i < 1; i++ { //insert 0 to 9
-//		context.Send(servicePID, &messages.Insert{
-//			Id:       1,
-//			Token:    token,
-//			Key:      int32(i),
-//			Value:    string(i),
-//			Response: nil,
-//		})
-//		time.Sleep(time.Millisecond * 500)
-//		if globl_msg == nil {
-//			t.Errorf("Insert Response missing %v",i)
-//		}
-//		switch msg := globl_msg.(type) {
-//		case *messages.Insert:
-//			if !msg.Response.Success {
-//				t.Error("Insert -> Response -> sucsess == false")
-//			}
-//		}
-//		globl_msg = nil
-//	}
-//	//validate that the values are preseent
-//	context.Send(servicePID, &messages.Traverse{
-//		Id:       1,
-//		Token:    token,
-//		Response: nil,
-//	})
-//	fmt.Print(globl_msg)
-//	switch msg := globl_msg.(type) {
-//
-//	case *messages.Traverse:
-//		if !msg.Response.Success {
-//			t.Error("Insert -> Traverse -> sucsess == false")
-//		}
-//		print(msg.Response.Tuples)
-//	}
-//	globl_msg = nil
-//}
+func TestSearch(t *testing.T) {
+	// search present keys
+	for i := 2; i < 10; i++ {
+		f := context.RequestFuture(servicePID, &messages.Search{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Response: nil,
+		}, 500*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout search Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Search:
+			if !msg.Response.Success {
+				t.Error("Search Response not successful Key was present")
+			}
+			if msg.Response.Value != strconv.Itoa(i) {
+				t.Errorf("Wrong value in search want %v got %v", strconv.Itoa(i), msg.Response.Value)
+			}
+		}
+	}
+	//search non present keys
+	for i := 10; i < 20; i++ {
+		f := context.RequestFuture(servicePID, &messages.Search{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Response: nil,
+		}, 500*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout search Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Search:
+			if msg.Response.Success {
+				t.Error("Search Response  successful Key was NOT present")
+			}
+			if msg.Response.Error != "Key not found" {
+				t.Error("Wrong error n key not found: " + msg.Response.Error)
+			}
+		}
+	}
+
+}
