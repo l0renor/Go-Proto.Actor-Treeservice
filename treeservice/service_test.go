@@ -75,22 +75,22 @@ func TestCreate(t *testing.T) {
 	}
 	globl_msg = nil
 }
+
 func TestInsert(t *testing.T) {
 	for i := 0; i < 1; i++ { //insert 0 to 9
-		context.Send(servicePID, &messages.Insert{
-			Id:       1,
-			Token:    token,
-			Key:      int32(i),
-			Value:    string(i),
+		f := context.RequestFuture(servicePID, &messages.Create{
+			MaxElems: 2,
 			Response: nil,
-		})
-		time.Sleep(time.Millisecond * 500)
-		if globl_msg == nil {
-			t.Error("Insert Response missing ")
+		}, 100*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout create Tree")
 		}
-		switch msg := globl_msg.(type) {
-		case *messages.Insert:
-			if !msg.Response.Success {
+
+		switch msg := res.(type) {
+		case *messages.Insert_Response:
+			if !msg.Success {
 				t.Error("Insert -> Response -> sucsess == false")
 			}
 		}
@@ -113,3 +113,42 @@ func TestInsert(t *testing.T) {
 	}
 	globl_msg = nil
 }
+
+//func TestInsert(t *testing.T) {
+//	for i := 0; i < 1; i++ { //insert 0 to 9
+//		context.Send(servicePID, &messages.Insert{
+//			Id:       1,
+//			Token:    token,
+//			Key:      int32(i),
+//			Value:    string(i),
+//			Response: nil,
+//		})
+//		time.Sleep(time.Millisecond * 500)
+//		if globl_msg == nil {
+//			t.Errorf("Insert Response missing %v",i)
+//		}
+//		switch msg := globl_msg.(type) {
+//		case *messages.Insert:
+//			if !msg.Response.Success {
+//				t.Error("Insert -> Response -> sucsess == false")
+//			}
+//		}
+//		globl_msg = nil
+//	}
+//	//validate that the values are preseent
+//	context.Send(servicePID, &messages.Traverse{
+//		Id:       1,
+//		Token:    token,
+//		Response: nil,
+//	})
+//	fmt.Print(globl_msg)
+//	switch msg := globl_msg.(type) {
+//
+//	case *messages.Traverse:
+//		if !msg.Response.Success {
+//			t.Error("Insert -> Traverse -> sucsess == false")
+//		}
+//		print(msg.Response.Tuples)
+//	}
+//	globl_msg = nil
+//}

@@ -31,13 +31,13 @@ type traverser struct {
 
 func (state *inserter) Receive(context actor.Context) {
 	switch context.Message().(type) {
-	case tree.Success:
+	case *tree.Success:
 		state.msg.Response = &messages.Insert_Response{
 			Success: true,
 		}
 		context.Send(state.cli, state.msg)
 		context.Stop(context.Self())
-	case tree.Error:
+	case *tree.Error:
 		state.msg.Response = &messages.Insert_Response{
 			Success: false,
 			Error:   "Key already present",
@@ -49,14 +49,14 @@ func (state *inserter) Receive(context actor.Context) {
 
 func (state *searcher) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case tree.Success:
+	case *tree.Success:
 		state.msg.Response = &messages.Search_Response{
 			Success: true,
 			Value:   msg.Value,
 		}
 		context.Send(state.cli, state.msg)
 		context.Stop(context.Self())
-	case tree.Error:
+	case *tree.Error:
 		state.msg.Response = &messages.Search_Response{
 			Success: false,
 			Error:   "Key not found",
@@ -68,13 +68,13 @@ func (state *searcher) Receive(context actor.Context) {
 
 func (state *deleter) Receive(context actor.Context) {
 	switch context.Message().(type) {
-	case tree.Success:
+	case *tree.Success:
 		state.msg.Response = &messages.Delete_Response{
 			Success: true,
 		}
 		context.Send(state.cli, state.msg)
 		context.Stop(context.Self())
-	case tree.Error:
+	case *tree.Error:
 		state.msg.Response = &messages.Delete_Response{
 			Success: false,
 			Error:   "Key not found",
@@ -86,7 +86,7 @@ func (state *deleter) Receive(context actor.Context) {
 
 func (state *traverser) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case tree.Traverse:
+	case *tree.Traverse:
 		for k, v := range msg.TreeValues { // merge maps
 			state.treemap[k] = v
 		}
@@ -113,7 +113,7 @@ func (state *traverser) Receive(context actor.Context) {
 			context.Send(state.cli, state.msg)
 			context.Stop(context.Self())
 		}
-	case tree.TraverseWaitOneMore:
+	case *tree.TraverseWaitOneMore:
 		state.nMessagesWait++
 	}
 }

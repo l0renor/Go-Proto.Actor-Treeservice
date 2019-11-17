@@ -72,6 +72,7 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 			}
 		}))
 		context.RequestWithCustomSender(root, &tree.Insert{}, helper)
+		logger.GetInstance().Info.Printf("Inserter PID : %v\n", helper)
 		logger.GetInstance().Info.Printf("Started insert ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
 	} else {
 		logger.GetInstance().Info.Println("Wrong credentials for insert")
