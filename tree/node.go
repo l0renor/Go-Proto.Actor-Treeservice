@@ -38,6 +38,7 @@ func NewRoot(maxElems int32) *Node {
 // Actions ------------------------------------------------
 
 func (node *Node) Receive(context actor.Context) {
+	logger.GetInstance().Info.Printf("NODE %v got msg %T", node, context.Message())
 	switch msg := context.Message().(type) {
 	case *Insert:
 		node.insert(msg, context)
