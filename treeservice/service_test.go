@@ -77,15 +77,18 @@ func TestCreate(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	for i := 0; i < 1; i++ { //insert 0 to 9
-		f := context.RequestFuture(servicePID, &messages.Create{
-			MaxElems: 2,
+	for i := 0; i < 10; i++ { //insert 0 to 9
+		f := context.RequestFuture(servicePID, &messages.Insert{
+			Id:       1,
+			Token:    token,
+			Key:      int32(i),
+			Value:    string(i),
 			Response: nil,
 		}, 100*time.Millisecond)
 
 		res, err := f.Result()
 		if err != nil {
-			t.Error("Timeout create Tree")
+			t.Error("Timeout insert Tree")
 		}
 
 		switch msg := res.(type) {
@@ -94,24 +97,27 @@ func TestInsert(t *testing.T) {
 				t.Error("Insert -> Response -> sucsess == false")
 			}
 		}
-		globl_msg = nil
 	}
-	//validate that the values are preseent
-	context.Send(servicePID, &messages.Traverse{
+	f := context.RequestFuture(servicePID, &messages.Traverse{
 		Id:       1,
 		Token:    token,
 		Response: nil,
-	})
-	fmt.Print(globl_msg)
-	switch msg := globl_msg.(type) {
+	}, 500*time.Millisecond)
 
-	case *messages.Traverse:
-		if !msg.Response.Success {
-			t.Error("Insert -> Traverse -> sucsess == false")
-		}
-		print(msg.Response.Tuples)
+	res, err := f.Result()
+	if err != nil {
+		t.Error("Timeout traverse Tree")
 	}
-	globl_msg = nil
+
+	switch msg := res.(type) {
+	case messages.Traverse:
+		if !msg.Response.Success {
+
+			t.Error("Traverse not successful " + msg.Response.Error)
+		}
+		fmt.Sprintf("Traverse: %v", msg.Response.Tuples)
+
+	}
 }
 
 //func TestInsert(t *testing.T) {

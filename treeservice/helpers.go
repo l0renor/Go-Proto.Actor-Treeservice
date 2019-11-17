@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/tree"
 	"sort"
@@ -30,6 +31,7 @@ type traverser struct {
 }
 
 func (state *inserter) Receive(context actor.Context) {
+	logger.GetInstance().Info.Printf("Inserter state %v", state)
 	switch context.Message().(type) {
 	case *tree.Success:
 		state.msg.Response = &messages.Insert_Response{

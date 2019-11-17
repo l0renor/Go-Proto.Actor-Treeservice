@@ -55,7 +55,7 @@ func (node *Node) Receive(context actor.Context) {
 }
 
 func (node *Node) insert(msg *Insert, context actor.Context) {
-	logger.GetInstance().Info.Printf("Insert %v, on %v\n", msg, node)
+	logger.GetInstance().Info.Printf("Insert %v, on %v\n", msg.Key, node)
 	if node.inner != nil {
 		switch {
 		case msg.Key > node.inner.maxLeft:
