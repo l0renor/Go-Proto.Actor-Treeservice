@@ -10,22 +10,22 @@ import (
 
 type inserter struct {
 	cli *actor.PID
-	msg messages.Insert
+	msg *messages.Insert
 }
 
 type searcher struct {
 	cli *actor.PID
-	msg messages.Search
+	msg *messages.Search
 }
 
 type deleter struct {
 	cli *actor.PID
-	msg messages.Delete
+	msg *messages.Delete
 }
 
 type traverser struct {
 	cli           *actor.PID
-	msg           messages.Traverse
+	msg           *messages.Traverse
 	nMessagesWait int
 	treemap       map[int32]string
 }
@@ -118,7 +118,7 @@ func (state *traverser) Receive(context actor.Context) {
 				Error:   "",
 			}
 			context.Send(state.cli, state.msg)
-			logger.GetInstance().Info.Println("Traverser send back to cli")
+			logger.GetInstance().Info.Println("Traverser sent back to cli")
 			context.Stop(context.Self())
 		}
 	case *tree.TraverseWaitOneMore:

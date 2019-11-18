@@ -1,7 +1,7 @@
 FROM obraun/vss-protoactor-jenkins as builder
 COPY . /app
 WORKDIR /app
-RUN go build -o treecli/main treecli/main.go treecli/receiver.go
+RUN go build -o treecli/main cmd/treecli/main.go
 
 FROM iron/go
 COPY --from=builder /app/treecli/main /app/treecli
