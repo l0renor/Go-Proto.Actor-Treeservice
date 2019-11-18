@@ -40,6 +40,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	// nolint:gocritic
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case *messages.Create:
 		if !msg.Response.Success {
@@ -64,6 +65,7 @@ func TestCreate(t *testing.T) {
 		t.Error("Timeout create Tree")
 	}
 
+	// nolint:gocritic
 	// nolint:gocritic
 	switch msg := res.(type) {
 	case *messages.Create:
@@ -94,6 +96,8 @@ func TestInsert_Traverse(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout insert Tree")
 		}
+
+		// nolint:gocritic
 		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
@@ -117,6 +121,7 @@ func TestInsert_Traverse(t *testing.T) {
 		}
 
 		// nolint:gocritic
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
 			if msg.Success {
@@ -138,6 +143,7 @@ func TestInsert_Traverse(t *testing.T) {
 		t.Error("Timeout traverse Tree")
 	}
 
+	// nolint:gocritic
 	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Traverse:
@@ -197,7 +203,7 @@ func TestSearch(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout search Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Search:
 			if msg.Response.Success {
@@ -221,7 +227,7 @@ func TestSearch(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout search Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Search:
 			if msg.Response.Success {
@@ -246,7 +252,7 @@ func TestDelete(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout delete Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Delete:
 			if !msg.Response.Success {
@@ -266,7 +272,7 @@ func TestDelete(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout delete Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Delete:
 			if msg.Response.Success {
@@ -288,7 +294,7 @@ func TestRemove_Creds(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout remove Tree")
 	}
-
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Remove:
 		if !msg.Response.Success {
@@ -306,7 +312,7 @@ func TestRemove_Creds(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout remove Tree")
 	}
-
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Remove:
 		if msg.Response.Success {
@@ -325,7 +331,7 @@ func TestRemove_Creds(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout remove Tree")
 	}
-
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Remove:
 		if msg.Response.Success {
@@ -344,6 +350,7 @@ func TestBigInsert_delete(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout create Tree")
 	}
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case *messages.Create:
 		if !msg.Response.Success {
@@ -370,7 +377,7 @@ func TestBigInsert_delete(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout insert Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
 			if !msg.Success {
@@ -393,7 +400,7 @@ func TestBigInsert_delete(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout delete Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Delete:
 			if !msg.Response.Success {
@@ -417,7 +424,7 @@ func TestBigInsert_delete(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout insert Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
 			if !msg.Success {
@@ -436,7 +443,7 @@ func TestBigInsert_delete(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout traverse Tree")
 	}
-
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Traverse:
 		if !msg.Response.Success {

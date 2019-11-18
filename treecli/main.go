@@ -29,7 +29,7 @@ var id int
 // nolint:gochecknoglobals
 var token string
 
-// nolint:gocognic
+// nolint:gocognit
 func Main() {
 	app := &cli.App{
 		Name:  "treecli",
