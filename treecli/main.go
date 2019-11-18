@@ -113,9 +113,8 @@ func Main() {
 						}
 						err = callService(msg)
 						return err
-					} else {
-						return errors.New("call search with one argument and credential flags")
 					}
+					return errors.New("call search with one argument and credential flags")
 				},
 			},
 			{
@@ -134,9 +133,8 @@ func Main() {
 						}
 						err = callService(msg)
 						return err
-					} else {
-						return errors.New("call delete with one argument and credential flags")
 					}
+					return errors.New("call delete with one argument and credential flags")
 				},
 			},
 			{
@@ -150,9 +148,8 @@ func Main() {
 						}
 						err := callService(msg)
 						return err
-					} else {
-						return errors.New("call traverse with credential flags and no arguments")
 					}
+					return errors.New("call traverse with credential flags and no arguments")
 				},
 			},
 			{
@@ -166,9 +163,8 @@ func Main() {
 						}
 						err := callService(msg)
 						return err
-					} else {
-						return errors.New("call remove with credential flags and no arguments")
 					}
+					return errors.New("call remove with credential flags and no arguments")
 				},
 			},
 		},
