@@ -69,7 +69,7 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &inserter{
 				cli: context.Sender(),
-				msg: *msg,
+				msg: msg,
 			}
 		}))
 		context.RequestWithCustomSender(root, &tree.Insert{Key: msg.Key, Value: msg.Value}, helper)
@@ -91,7 +91,7 @@ func (service *Service) search(msg *messages.Search, context actor.Context) {
 		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &searcher{
 				cli: context.Sender(),
-				msg: *msg,
+				msg: msg,
 			}
 		}))
 		context.RequestWithCustomSender(root, &tree.Search{Key: msg.Key}, helper)
@@ -112,7 +112,7 @@ func (service *Service) delete(msg *messages.Delete, context actor.Context) {
 		helper := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &deleter{
 				cli: context.Sender(),
-				msg: *msg,
+				msg: msg,
 			}
 		}))
 		logger.GetInstance().Info.Printf("Started delete for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id, msg.Token, root)
@@ -134,12 +134,13 @@ func (service *Service) traverse(msg *messages.Traverse, context actor.Context) 
 		traversActorPID := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 			return &traverser{
 				cli:           context.Sender(),
-				msg:           *msg,
+				msg:           msg,
 				nMessagesWait: 1,
 				treemap:       make(map[int32]string),
 			}
 		}))
 		logger.GetInstance().Info.Printf("Started traverse ID:%v,token: %v, root:%v \n", msg.Id, msg.Token, root)
+		logger.GetInstance().Info.Printf("Remote PID:%v", context.Sender())
 		context.RequestWithCustomSender(root, &tree.Traverse{}, traversActorPID)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for traverse\n")
