@@ -13,7 +13,7 @@ import (
 type Service struct {
 	//Place to store all the trees managed by the service
 	trees  map[int32]Tree
-	nextId func() int32
+	nextID func() int32
 }
 
 type Tree struct {
@@ -26,10 +26,10 @@ func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *actor.Started:
 		logger.GetInstance().Info.Println("started service")
-		service.nextId = idGenerator()
+		service.nextID = idGenerator()
 		service.trees = make(map[int32]Tree)
 	case *messages.Create:
-		logger.GetInstance().Info.Println("recieved create")
+		logger.GetInstance().Info.Println("received create")
 		service.create(msg, context)
 	case *messages.Insert:
 		service.insert(msg, context)
@@ -45,7 +45,7 @@ func (service *Service) Receive(context actor.Context) {
 }
 
 func (service *Service) create(msg *messages.Create, context actor.Context) {
-	id := service.nextId()
+	id := service.nextID()
 	token := generateToken()
 	root := context.Spawn(actor.PropsFromProducer(func() actor.Actor {
 		return tree.NewRoot(msg.MaxElems)
@@ -75,7 +75,8 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 		logger.GetInstance().Info.Printf("Service: CLI PID %v--%v", context.Sender().Id, context.Sender().Address)
 		context.RequestWithCustomSender(root, &tree.Insert{Key: msg.Key, Value: msg.Value}, helper)
 		logger.GetInstance().Info.Printf("Inserter PID : %v\n", helper)
-		logger.GetInstance().Info.Printf("Started insert ID:%v,token: %v, root:%v key %v val %v\n", msg.Id, msg.Token, root, msg.Key, msg.Value)
+		logger.GetInstance().Info.Printf("Started insert ID:%v,token: %v, root:%v key %v val %v\n", msg.Id,
+			msg.Token, root, msg.Key, msg.Value)
 	} else {
 		logger.GetInstance().Info.Println("Wrong credentials for insert")
 		msg.Response = &messages.Insert_Response{
@@ -96,7 +97,8 @@ func (service *Service) search(msg *messages.Search, context actor.Context) {
 			}
 		}))
 		context.RequestWithCustomSender(root, &tree.Search{Key: msg.Key}, helper)
-		logger.GetInstance().Info.Printf("Started search for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id, msg.Token, root)
+		logger.GetInstance().Info.Printf("Started search for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id,
+			msg.Token, root)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for search\n")
 		msg.Response = &messages.Search_Response{
@@ -116,7 +118,8 @@ func (service *Service) delete(msg *messages.Delete, context actor.Context) {
 				msg: msg,
 			}
 		}))
-		logger.GetInstance().Info.Printf("Started delete for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id, msg.Token, root)
+		logger.GetInstance().Info.Printf("Started delete for %v ID:%v,token: %v, root:%v \n", msg.Key, msg.Id,
+			msg.Token, root)
 		context.RequestWithCustomSender(root, &tree.Delete{Key: msg.Key}, helper)
 	} else {
 		logger.GetInstance().Info.Printf("Wrong credentials for delete\n")

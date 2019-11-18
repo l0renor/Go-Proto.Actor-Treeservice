@@ -1,2 +1,6 @@
 linters:
     enable-all: true
+    disable:
+        - wsl
+        - funlen
+        - goimports

@@ -13,6 +13,7 @@ import (
 	"syscall"
 )
 
+// nolint:gochecknoglobals
 var bindAddr string
 
 func Main() {

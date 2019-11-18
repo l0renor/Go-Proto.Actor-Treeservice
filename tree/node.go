@@ -191,7 +191,6 @@ func (node *Node) kill(context actor.Context) {
 		context.Send(node.inner.right, &Kill{})
 		context.Send(node.inner.left, &Kill{})
 		context.Stop(context.Self())
-
 	} else { //IF is leaf
 		context.Stop(context.Self())
 	}
@@ -199,11 +198,11 @@ func (node *Node) kill(context actor.Context) {
 
 func (node *Node) String() string {
 	if node.inner != nil {
-		return fmt.Sprintf("Inner Node\n left:%v\nright: %v \nmaxleft %v", node.inner.left, node.inner.right, node.inner.maxLeft)
-	} else {
-		return fmt.Sprintf("Leaf:\n"+
-			"Values: %v", node.leaf.values)
+		return fmt.Sprintf("Inner Node\n left:%v\nright: %v \nmaxleft %v", node.inner.left, node.inner.right,
+			node.inner.maxLeft)
 	}
+	return fmt.Sprintf("Leaf:\n"+
+		"Values: %v", node.leaf.values)
 }
 
 func max(a int32, b int32) int32 {

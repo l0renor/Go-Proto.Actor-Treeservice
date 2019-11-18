@@ -1,7 +1,5 @@
 package tree
 
-import "github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
-
 //Die Nachricht verläuft den Baum nach unten und teilt sich auf so oft nötig
 //der CLI muss auf alle nachrichten  der leaves waren und kann diese sortieren
 
@@ -12,10 +10,6 @@ type Traverse struct {
 	TreeValues map[int32]string
 }
 type TraverseWaitOneMore struct {
-}
-
-type TraverseActor_Msg struct {
-	tree []messages.Traverse_Response_Tuple
 }
 
 type Search struct {

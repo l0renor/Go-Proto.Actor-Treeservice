@@ -122,6 +122,6 @@ func (state *traverser) Receive(context actor.Context) {
 			context.Stop(context.Self())
 		}
 	case *tree.TraverseWaitOneMore:
-		state.nMessagesWait += 1
+		state.nMessagesWait++
 	}
 }

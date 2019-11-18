@@ -17,11 +17,18 @@ import (
 	"time"
 )
 
+// nolint:gochecknoglobals
 var bindAddr string
+
+// nolint:gochecknoglobals
 var remoteAddr string
-var id int
+
+// nolint:gochecknoglobals
+var id int // nolint:gochecknoglobals
+
 var token string
 
+// nolint:gocogniz
 func Main() {
 	app := &cli.App{
 		Name:  "treecli",
@@ -63,9 +70,8 @@ func Main() {
 						msg := &messages.Create{MaxElems: int32(maxElems)}
 						err = callService(msg)
 						return err
-					} else {
-						return errors.New("call create with one argument and no credential flags")
 					}
+					return errors.New("call create with one argument and no credential flags")
 				},
 			},
 			{
@@ -86,9 +92,8 @@ func Main() {
 						}
 						err = callService(msg)
 						return err
-					} else {
-						return errors.New("call insert with two arguments and credential flags")
 					}
+					return errors.New("call insert with two arguments and credential flags")
 				},
 			},
 			{
@@ -178,7 +183,6 @@ func Main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func callService(msg interface{}) error {

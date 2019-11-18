@@ -17,6 +17,9 @@ pipeline {
             }
             steps {
                 sh 'echo run tests...'
+                sh 'go build ./treeservice'
+                sh 'go test ./treeservice'
+
             }
         }
         stage('Lint') {

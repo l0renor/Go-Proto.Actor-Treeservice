@@ -8,10 +8,16 @@ import (
 	"time"
 )
 
+// nolint:gochecknoglobals
 var servicePID *actor.PID
 
+// nolint:gochecknoglobals
 var context *actor.RootContext
+
+// nolint:gochecknoglobals
 var token string
+
+// nolint:gochecknoglobals
 var token2 string
 
 func TestInitService(t *testing.T) {
@@ -84,7 +90,7 @@ func TestInsert_Traverse(t *testing.T) {
 		if err != nil {
 			t.Error("Timeout insert Tree")
 		}
-
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
 			if !msg.Success {
@@ -106,6 +112,7 @@ func TestInsert_Traverse(t *testing.T) {
 			t.Error("Timeout insert Tree")
 		}
 
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case *messages.Insert_Response:
 			if msg.Success {
@@ -114,7 +121,6 @@ func TestInsert_Traverse(t *testing.T) {
 			if msg.Error != "Key already present" {
 				t.Error("Insert wrong error got " + msg.Error)
 			}
-
 		}
 	}
 	f := context.RequestFuture(servicePID, &messages.Traverse{
@@ -128,12 +134,15 @@ func TestInsert_Traverse(t *testing.T) {
 		t.Error("Timeout traverse Tree")
 	}
 
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case messages.Traverse:
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		var want = [8]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 3, Value: "3"}, {Key: 4, Value: "4"}, {Key: 5, Value: "5"}, {Key: 6, Value: "6"}, {Key: 7, Value: "7"}, {Key: 8, Value: "8"}, {Key: 9, Value: "9"}}
+		var want = [8]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 3, Value: "3"},
+			{Key: 4, Value: "4"}, {Key: 5, Value: "5"}, {Key: 6, Value: "6"}, {Key: 7, Value: "7"},
+			{Key: 8, Value: "8"}, {Key: 9, Value: "9"}}
 		for e := range want {
 			if want[e].Key != msg.Response.Tuples[e].Key {
 				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)
@@ -430,7 +439,8 @@ func TestBigInsert_delete(t *testing.T) {
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		var want = [6]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 7, Value: "7"}, {Key: 20, Value: "20"}, {Key: 21, Value: "21"}, {Key: 35, Value: "35"}, {Key: 40, Value: "40"}}
+		var want = [6]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 7, Value: "7"},
+			{Key: 20, Value: "20"}, {Key: 21, Value: "21"}, {Key: 35, Value: "35"}, {Key: 40, Value: "40"}}
 		for e := range want {
 			if want[e].Key != msg.Response.Tuples[e].Key {
 				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)

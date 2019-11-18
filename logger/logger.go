@@ -8,31 +8,28 @@ import (
 	"sync"
 )
 
-type logger struct {
+type Logger struct {
 	Trace   *log.Logger
 	Info    *log.Logger
 	Warning *log.Logger
 	Error   *log.Logger
 }
 
-var instance *logger
+// nolint:gochecknoglobals
+var instance *Logger
+
+// nolint:gochecknoglobals
 var once sync.Once
 
-func GetInstance() *logger {
+func GetInstance() *Logger {
 	once.Do(func() {
-		instance = &logger{}
+		instance = &Logger{}
 		Init(instance, ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	})
 	return instance
 }
 
-func Init(
-	lo *logger,
-	traceHandle io.Writer,
-	infoHandle io.Writer,
-	warningHandle io.Writer,
-	errorHandle io.Writer) {
-
+func Init(lo *Logger, traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
 	lo.Trace = log.New(traceHandle,
 		"TRACE: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
