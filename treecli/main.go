@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
@@ -157,6 +158,12 @@ func Main() {
 				Usage: "Removes full tree",
 				Action: func(context *cli.Context) error {
 					if context.NArg() == 0 && id != 0 && token != "" {
+						reader := bufio.NewReader(os.Stdin)
+						fmt.Print("Are you sure? Enter token again to confirm: ")
+						text, _ := reader.ReadString('\n')
+						if text != token {
+							return errors.New("entered tokens don't match")
+						}
 						msg := &messages.Remove{
 							Id:    int32(id),
 							Token: token,

@@ -1,3 +1,44 @@
+## Lokales Bauen und Ausführen
+
+Entweder
+
+-   Binaries im Repository bauen
+
+    ```
+    cd cmd/treecli
+    go build
+    cd ../treeservice
+    go build    
+    ```
+    
+    und dann auch
+    
+-   Binaries lokal ausführen
+
+    ```
+    ./cmd/treeservice/treeservice --bind localhost:8090
+    ./cmd/treecli/treecli --bind localhost:8091 --remote localhost:8090 [command]  
+    ```
+    
+oder
+
+-   Binaries in den GOPATH installieren
+
+    ```
+    go install ./...
+    ```
+    
+    und wenn der GOPATH auch im PATH der Shell hinterlegt ist, einfach
+    
+-   Binaries direkt ausführen
+
+    ```
+    treeservice --bind localhost:8090
+    treecli --bind localhost:8091 --remote localhost:8090 [command]  
+    ```
+        
+Außerdem kann durch die Flag `--help` jederzeit eine Hilfe zu verfügbaren Kommandos und Flags ausgegeben werden.    
+
 ## Ausführen mit Docker
 
 -   Images bauen
@@ -20,27 +61,13 @@
       --bind="treeservice.actors:8090"
     ```
 
-    Damit das funktioniert, müssen Sie folgendes erst im Tree-Service implementieren:
-
-    -   die `main` verarbeitet Kommandozeilenflags und
-    -   der Remote-Actor nutzt den Wert des Flags
-    -   wenn Sie einen anderen Port als `8090` benutzen wollen,
-        müssen Sie das auch im Dockerfile ändern (`EXPOSE...`)
-
 -   Starten des Tree-CLI, Binden an `treecli.actors:8091` und nutzen des Services unter
     dem Namen und Port `treeservice.actors:8090`:
 
     ```
     docker run --rm --net actors --name treecli treecli --bind="treecli.actors:8091" \
-      --remote="treeservice.actors:8090" trees
+      --remote="treeservice.actors:8090"
     ```
-
-    Hier sind wieder die beiden Flags `--bind` und `--remote` beliebig gewählt und
-    in der Datei `treeservice/main.go` implementiert. `trees` ist ein weiteres
-    Kommandozeilenargument, dass z.B. eine Liste aller Tree-Ids anzeigen soll.
-
-    Zum Ausprobieren können Sie den Service dann laufen lassen. Das CLI soll ja jedes
-    Mal nur einen Befehl abarbeiten und wird dann neu gestartet.
 
 -   Zum Beenden, killen Sie einfach den Tree-Service-Container mit `Ctrl-C` und löschen
     Sie das Netzwerk mit
@@ -58,3 +85,45 @@ genaue Bezeichnung in die Consolenausgabe des Jenkins-Jobs.
 Wenn Sie die Imagenamen oben (`treeservice` und `treecli`) durch die Namen aus der
 Registry ersetzen, können Sie Ihre Lösung mit den selben Kommandos wie oben beschrieben,
 ausprobieren.
+
+## Verfügbare Kommandos
+
+-   Neuen Baum erstellen (MAX_ELEMS ist die Zahl der maximalen Elemente pro Blatt)
+    
+    ```
+    treecli (...) create MAX_ELEMS  
+    ```
+    
+    Gibt die ID und das TOKEN des Baumes zurück, welche für die anderen Operationen gebraucht werden.
+    
+-   Element einfügen (Schlüssel-Wert Paar KEY-VALUE)
+
+    ```
+    treecli (...) --id ID --token TOKEN insert KEY VALUE
+    ```
+    
+-   Element suchen (mit Schlüssel KEY)
+
+    ```
+    treecli (...) --id ID --token TOKEN search KEY
+    ```
+    
+    Gibt den Wert des gesuchten Elements zurück
+    
+-   Element löschen (mit Schlüssel KEY)
+
+    ```
+    treecli (...) --id ID --token TOKEN delete KEY
+    ```
+    
+-   Baum traversieren (alle Elemente ausgeben)
+
+    ```
+    treecli (...) --id ID --token TOKEN traverse
+    ```
+    
+-   Gesamten Baum entfernen
+
+    ```
+    treecli (...) --id ID --token TOKEN remove
+    ```
