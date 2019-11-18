@@ -18,7 +18,7 @@ var remoteAddr string
 var id int
 var token string
 
-func main() {
+func Main() {
 	app := &cli.App{
 		Name:  "treecli",
 		Usage: "Interact with a specified treeservice",

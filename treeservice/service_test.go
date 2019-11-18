@@ -8,19 +8,12 @@ import (
 	"time"
 )
 
-type tester struct {
-}
-
-var globl_msg interface{}
 var servicePID *actor.PID
-var testerPID *actor.PID
+
 var context *actor.RootContext
 var token string
 var token2 string
 
-func (test *tester) Receive(context actor.Context) {
-	globl_msg = context.Message()
-}
 func TestInitService(t *testing.T) {
 	context = actor.EmptyRootContext
 	props := actor.PropsFromProducer(func() actor.Actor {
@@ -75,7 +68,6 @@ func TestCreate(t *testing.T) {
 		}
 		token2 = msg.Response.Token
 	}
-	globl_msg = nil
 }
 
 func TestInsert_Traverse(t *testing.T) {
@@ -141,7 +133,7 @@ func TestInsert_Traverse(t *testing.T) {
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		want := [8]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 3, Value: "3"}, &messages.Traverse_Response_Tuple{Key: 4, Value: "4"}, &messages.Traverse_Response_Tuple{Key: 5, Value: "5"}, &messages.Traverse_Response_Tuple{Key: 6, Value: "6"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 8, Value: "8"}, &messages.Traverse_Response_Tuple{Key: 9, Value: "9"}}
+		var want = [8]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 3, Value: "3"}, {Key: 4, Value: "4"}, {Key: 5, Value: "5"}, {Key: 6, Value: "6"}, {Key: 7, Value: "7"}, {Key: 8, Value: "8"}, {Key: 9, Value: "9"}}
 		for e := range want {
 			if want[e].Key != msg.Response.Tuples[e].Key {
 				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)
@@ -438,7 +430,7 @@ func TestBigInsert_delete(t *testing.T) {
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		want := [6]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 20, Value: "20"}, &messages.Traverse_Response_Tuple{Key: 21, Value: "21"}, &messages.Traverse_Response_Tuple{Key: 35, Value: "35"}, &messages.Traverse_Response_Tuple{Key: 40, Value: "40"}}
+		var want = [6]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, {Key: 7, Value: "7"}, {Key: 20, Value: "20"}, {Key: 21, Value: "21"}, {Key: 35, Value: "35"}, {Key: 40, Value: "40"}}
 		for e := range want {
 			if want[e].Key != msg.Response.Tuples[e].Key {
 				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)

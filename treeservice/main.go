@@ -11,7 +11,7 @@ import (
 
 var bindAddr string
 
-func main() {
+func Main() {
 	app := &cli.App{
 		Name:  "treeservice",
 		Usage: "Start a tree service server",
