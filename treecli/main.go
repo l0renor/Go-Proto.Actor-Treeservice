@@ -24,11 +24,12 @@ var bindAddr string
 var remoteAddr string
 
 // nolint:gochecknoglobals
-var id int // nolint:gochecknoglobals
+var id int
 
+// nolint:gochecknoglobals
 var token string
 
-// nolint:gocogniz
+// nolint:gocognic
 func Main() {
 	app := &cli.App{
 		Name:  "treecli",

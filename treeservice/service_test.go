@@ -38,6 +38,8 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout create Tree")
 	}
+
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case *messages.Create:
 		if !msg.Response.Success {
@@ -61,6 +63,8 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error("Timeout create Tree")
 	}
+
+	// nolint:gocritic
 	switch msg := res.(type) {
 	case *messages.Create:
 		if !msg.Response.Success {
@@ -169,6 +173,7 @@ func TestSearch(t *testing.T) {
 			t.Error("Timeout search Tree")
 		}
 
+		// nolint:gocritic
 		switch msg := res.(type) {
 		case messages.Search:
 			if !msg.Response.Success {
@@ -227,7 +232,6 @@ func TestSearch(t *testing.T) {
 			}
 		}
 	}
-
 }
 func TestDelete(t *testing.T) {
 	for i := 2; i < 10; i++ { //delete present key -> sucsess
@@ -270,7 +274,6 @@ func TestDelete(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 func TestRemove_Creds(t *testing.T) {
