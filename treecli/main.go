@@ -174,7 +174,6 @@ func Main() {
 func callService(msg interface{}) error {
 	remote.Start(bindAddr)
 	var wg sync.WaitGroup
-	defer wg.Wait()
 	rootContext := actor.EmptyRootContext
 	receiver := rootContext.Spawn(actor.PropsFromProducer(func() actor.Actor {
 		wg.Add(1)
@@ -186,5 +185,6 @@ func callService(msg interface{}) error {
 	}
 	service := response.Pid
 	rootContext.RequestWithCustomSender(service, msg, receiver)
+	wg.Wait()
 	return nil
 }

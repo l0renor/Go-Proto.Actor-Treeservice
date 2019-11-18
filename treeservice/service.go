@@ -1,7 +1,8 @@
 package service
 
 import (
-	"crypto/sha1"
+	"crypto/md5"
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
@@ -24,7 +25,7 @@ type Tree struct {
 func (service *Service) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *actor.Started:
-		logger.GetInstance().Info.Println("stated service")
+		logger.GetInstance().Info.Println("started service")
 		service.nextId = idGenerator()
 		service.trees = make(map[int32]Tree)
 	case *messages.Create:
@@ -179,10 +180,9 @@ func idGenerator() func() int32 {
 
 func generateToken() string {
 	t := time.Now().String()
-	h := sha1.New()
-	h.Write([]byte(t))
-	token := h.Sum(nil)
-	return string(token)
+	h := md5.New()
+	token := h.Sum([]byte(t))
+	return fmt.Sprintf("%x", token)
 }
 
 //method to get the pid of the root of the tree matching the token and id

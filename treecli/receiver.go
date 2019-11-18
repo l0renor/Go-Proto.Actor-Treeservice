@@ -26,7 +26,6 @@ func (state *receiver) Receive(context actor.Context) {
 	case *messages.Remove:
 		state.remove(msg)
 	}
-	state.wg.Done()
 }
 
 func (state *receiver) create(msg *messages.Create) {
@@ -35,6 +34,7 @@ func (state *receiver) create(msg *messages.Create) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
 
 func (state *receiver) insert(msg *messages.Insert) {
@@ -43,6 +43,7 @@ func (state *receiver) insert(msg *messages.Insert) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
 
 func (state *receiver) search(msg *messages.Search) {
@@ -51,6 +52,7 @@ func (state *receiver) search(msg *messages.Search) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
 
 func (state *receiver) delete(msg *messages.Delete) {
@@ -59,6 +61,7 @@ func (state *receiver) delete(msg *messages.Delete) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
 
 func (state *receiver) traverse(msg *messages.Traverse) {
@@ -69,6 +72,7 @@ func (state *receiver) traverse(msg *messages.Traverse) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
 
 func (state *receiver) remove(msg *messages.Remove) {
@@ -77,4 +81,5 @@ func (state *receiver) remove(msg *messages.Remove) {
 	} else {
 		fmt.Println(msg.Response.Error)
 	}
+	state.wg.Done()
 }
