@@ -1,12 +1,12 @@
 package service
 
 import (
-	"crypto/md5"
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/tree"
+	"hash/crc32"
 	"time"
 )
 
@@ -180,8 +180,7 @@ func idGenerator() func() int32 {
 
 func generateToken() string {
 	t := time.Now().String()
-	h := md5.New()
-	token := h.Sum([]byte(t))
+	token := crc32.ChecksumIEEE([]byte(t))
 	return fmt.Sprintf("%x", token)
 }
 
