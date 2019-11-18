@@ -2,14 +2,17 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
+	"os/signal"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -60,7 +63,7 @@ func Main() {
 						err = callService(msg)
 						return err
 					} else {
-						return errors.New("call create with one argument and credential flags")
+						return errors.New("call create with one argument and no credential flags")
 					}
 				},
 			},
@@ -163,7 +166,13 @@ func Main() {
 			},
 		},
 	}
-
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println()
+		os.Exit(0)
+	}()
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
