@@ -141,7 +141,7 @@ func TestInsert_Traverse(t *testing.T) {
 		if !msg.Response.Success {
 			t.Error("Traverse not successful " + msg.Response.Error)
 		}
-		want := [8]*messages.Traverse_Response_Tuple{&messages.Traverse_Response_Tuple{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 3, Value: "3"}, &messages.Traverse_Response_Tuple{Key: 4, Value: "4"}, &messages.Traverse_Response_Tuple{Key: 5, Value: "5"}, &messages.Traverse_Response_Tuple{Key: 6, Value: "6"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 8, Value: "8"}, &messages.Traverse_Response_Tuple{Key: 9, Value: "9"}}
+		want := [8]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 3, Value: "3"}, &messages.Traverse_Response_Tuple{Key: 4, Value: "4"}, &messages.Traverse_Response_Tuple{Key: 5, Value: "5"}, &messages.Traverse_Response_Tuple{Key: 6, Value: "6"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 8, Value: "8"}, &messages.Traverse_Response_Tuple{Key: 9, Value: "9"}}
 		for e := range want {
 			if want[e].Key != msg.Response.Tuples[e].Key {
 				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)
@@ -291,7 +291,7 @@ func TestRemove_Creds(t *testing.T) {
 			t.Error(" Remove not  successful")
 		}
 	}
-	//remove not presnt tree
+	//remove not present tree
 	f = context.RequestFuture(servicePID, &messages.Remove{
 		Id:       1,
 		Token:    token,
@@ -326,6 +326,126 @@ func TestRemove_Creds(t *testing.T) {
 	case messages.Remove:
 		if msg.Response.Success {
 			t.Error(" Remove successful  wrong creds")
+		}
+	}
+}
+
+func TestBigInsert_delete(t *testing.T) {
+	f := context.RequestFuture(servicePID, &messages.Create{
+		MaxElems: 3,
+		Response: nil,
+	}, 100*time.Millisecond)
+
+	res, err := f.Result()
+	if err != nil {
+		t.Error("Timeout create Tree")
+	}
+	switch msg := res.(type) {
+	case *messages.Create:
+		if !msg.Response.Success {
+			t.Error("Create -> Response -> Success == false")
+		}
+		if msg.Response.Token == "" {
+			t.Error("Token missing")
+		}
+		token = msg.Response.Token
+	}
+	//Insert round  1
+	round1 := []int32{7, 9, 15, 20, 22, 30}
+
+	for i := range round1 {
+		f := context.RequestFuture(servicePID, &messages.Insert{
+			Id:       3,
+			Token:    token,
+			Key:      round1[i],
+			Value:    strconv.Itoa(int(round1[i])),
+			Response: nil,
+		}, 100*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout insert Tree")
+		}
+
+		switch msg := res.(type) {
+		case *messages.Insert_Response:
+			if !msg.Success {
+				t.Error("Insert -> Response -> sucsess == false")
+			}
+		}
+	}
+	//delete some for structurl change
+	del1 := []int32{9, 15, 22, 30}
+
+	for i := range del1 {
+		f := context.RequestFuture(servicePID, &messages.Delete{
+			Id:       1,
+			Token:    token,
+			Key:      del1[i],
+			Response: nil,
+		}, 500*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout delete Tree")
+		}
+
+		switch msg := res.(type) {
+		case messages.Delete:
+			if !msg.Response.Success {
+				t.Error(" Delete not successful Key was present")
+			}
+		}
+	}
+
+	round2 := []int32{2, 40, 21, 35}
+
+	for i := range round2 {
+		f := context.RequestFuture(servicePID, &messages.Insert{
+			Id:       3,
+			Token:    token,
+			Key:      round2[i],
+			Value:    strconv.Itoa(int(round2[i])),
+			Response: nil,
+		}, 100*time.Millisecond)
+
+		res, err := f.Result()
+		if err != nil {
+			t.Error("Timeout insert Tree")
+		}
+
+		switch msg := res.(type) {
+		case *messages.Insert_Response:
+			if !msg.Success {
+				t.Error("Insert -> Response -> sucsess == false")
+			}
+		}
+	}
+
+	f = context.RequestFuture(servicePID, &messages.Traverse{
+		Id:       1,
+		Token:    token,
+		Response: nil,
+	}, 500*time.Millisecond)
+
+	res, err = f.Result()
+	if err != nil {
+		t.Error("Timeout traverse Tree")
+	}
+
+	switch msg := res.(type) {
+	case messages.Traverse:
+		if !msg.Response.Success {
+			t.Error("Traverse not successful " + msg.Response.Error)
+		}
+		want := [6]*messages.Traverse_Response_Tuple{{Key: 2, Value: "2"}, &messages.Traverse_Response_Tuple{Key: 7, Value: "7"}, &messages.Traverse_Response_Tuple{Key: 20, Value: "20"}, &messages.Traverse_Response_Tuple{Key: 21, Value: "21"}, &messages.Traverse_Response_Tuple{Key: 35, Value: "35"}, &messages.Traverse_Response_Tuple{Key: 40, Value: "40"}}
+		for e := range want {
+			if want[e].Key != msg.Response.Tuples[e].Key {
+				t.Errorf("Missmatch in traverse Key w:%v, is: %v", want[e].Key, msg.Response.Tuples[e].Key)
+			}
+			if want[e].Value != msg.Response.Tuples[e].Value {
+				t.Errorf("Missmatch in traverse Value w:%v, is: %v", want[e].Value, msg.Response.Tuples[e].Value)
+			}
 		}
 	}
 }
