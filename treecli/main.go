@@ -30,13 +30,13 @@ func Main() {
 			&cli.StringFlag{
 				Name:        "bind",
 				Usage:       "Address `HOST:PORT` to bind CLI to",
-				Value:       "treeservice.actors:8091",
+				Value:       "localhost:8091",
 				Destination: &bindAddr,
 			},
 			&cli.StringFlag{
 				Name:        "remote",
 				Usage:       "Address `HOST:PORT` of remote service",
-				Value:       "treeservice.actors:8090",
+				Value:       "localhost:8090",
 				Destination: &remoteAddr,
 			},
 			&cli.IntFlag{
