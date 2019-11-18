@@ -26,11 +26,11 @@ func Main() {
 		Action: func(context *cli.Context) error {
 			var wg sync.WaitGroup
 			wg.Add(1)
-			defer wg.Wait()
 			remote.Start(bindAddr)
 			remote.Register("tree", actor.PropsFromProducer(func() actor.Actor {
 				return &Service{}
 			}))
+			wg.Wait()
 			return nil
 		},
 	}
