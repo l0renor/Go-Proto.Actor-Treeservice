@@ -31,7 +31,7 @@ type traverser struct {
 }
 
 func (state *inserter) Receive(context actor.Context) {
-	//logger.GetInstance().Info.Printf("Inserter state %v", state)
+	logger.GetInstance().Info.Printf("CLI PID %v--%v", state.cli.Id, state.cli.Address)
 	switch context.Message().(type) {
 	case *tree.Success:
 		state.msg.Response = &messages.Insert_Response{

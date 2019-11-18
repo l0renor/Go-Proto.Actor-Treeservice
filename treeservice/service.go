@@ -72,6 +72,7 @@ func (service *Service) insert(msg *messages.Insert, context actor.Context) {
 				msg: *msg,
 			}
 		}))
+		logger.GetInstance().Info.Printf("Service: CLI PID %v--%v", context.Sender().Id, context.Sender().Address)
 		context.RequestWithCustomSender(root, &tree.Insert{Key: msg.Key, Value: msg.Value}, helper)
 		logger.GetInstance().Info.Printf("Inserter PID : %v\n", helper)
 		logger.GetInstance().Info.Printf("Started insert ID:%v,token: %v, root:%v key %v val %v\n", msg.Id, msg.Token, root, msg.Key, msg.Value)

@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	l "github.com/AsynkronIT/protoactor-go/log"
 	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/logger"
 	"github.com/urfave/cli/v2"
@@ -15,6 +16,7 @@ import (
 var bindAddr string
 
 func Main() {
+	actor.SetLogLevel(l.ErrorLevel)
 	app := &cli.App{
 		Name:  "treeservice",
 		Usage: "Start a tree service server",

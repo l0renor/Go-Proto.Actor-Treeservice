@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	l "github.com/AsynkronIT/protoactor-go/log"
 	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/ob-vss-ws19/blatt-3-chupa-chups/messages"
 	"github.com/urfave/cli/v2"
@@ -184,6 +185,7 @@ func callService(msg interface{}) error {
 	remote.Start(bindAddr)
 	var wg sync.WaitGroup
 	rootContext := actor.EmptyRootContext
+	actor.SetLogLevel(l.ErrorLevel)
 	receiver := rootContext.Spawn(actor.PropsFromProducer(func() actor.Actor {
 		wg.Add(1)
 		return &receiver{wg: &wg}
